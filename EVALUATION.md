@@ -22,26 +22,26 @@ GenAI platform assessment, so you can see which criteria you're demonstrating as
 
 ## ANWB's evaluation areas (capability categories)
 
-The assessment groups capabilities into these areas: **LLM Gateway, RAG, Agent Runtime, Agent
-Registry, Tool use, Evaluation, Guardrails, Tracing / Observability, Prompt Management, Model
-Deployment, Governance (IAM/RBAC), Monitoring, and UI / Low-code agent builder.**
+ANWB's "Capabilities to test for GenAI" list groups **145 criteria into 11 categories**: **Overall,
+LLM Gateway, Evaluation, Guardrails, Tracing, Prompt management, Agent registry, Skill registry,
+Tool registry, RAG, and Agent runtime.** (Governance / IAM / RBAC lives inside *Overall*; the
+no-code builder lives inside *Agent runtime*.)
 
 ## Which areas each use case lets you demonstrate
 
 | Evaluation area | ReisNogWijzer | Marketing Agent |
 |---|:---:|:---:|
+| Overall (platform, governance/RBAC, ops) | ● | ● |
 | LLM Gateway (model calls, compare models) | ● | ● |
 | RAG (Cortex Search over a knowledge base) | ● | ● |
-| Agent Runtime (multi-step orchestration) | ● | ● |
-| Tool use (custom tools / functions) | ● (vehicle, weather, advisory) | ● (deck generator) |
-| Agent Registry (build as a Cortex Agent) | ● | ● |
+| Agent runtime (multi-step orchestration) | ● | ● |
+| Tool registry (custom tools / functions) | ● (vehicle, weather, advisory) | ● (deck generator) |
+| Agent registry (build as a Cortex Agent) | ● | ● |
 | Evaluation (judge answer quality) | ○ optional | ○ optional |
 | Guardrails (PII redaction, scope, safety) | ○ optional | ○ optional |
-| Tracing / Observability (traces, cost, latency) | ● | ● |
-| Prompt Management (structured / versioned prompts) | ○ | ● (structured plan) |
-| Model Deployment / structured output | ○ | ● (JSON plan + deck) |
-| Governance (RBAC, masking) | platform-level, always available | platform-level, always available |
-| UI (Snowsight, Streamlit) | ● (optional app.py) | ● (optional app.py) |
+| Tracing (traces, cost, latency) | ● | ● |
+| Prompt management (structured / versioned prompts) | ○ | ● (structured plan) |
+| Skill registry (reusable skills/functions) | ○ | ○ |
 
 ● = a natural part of the challenge  ○ = available as a stretch
 
