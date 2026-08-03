@@ -1,17 +1,15 @@
 -- ============================================================================
--- ANWB AI Hackathon - FULL Requirement-List Readiness Check
+-- ANWB AI Hackathon - Account Readiness Check
 -- ----------------------------------------------------------------------------
--- WHERE TO RUN : In the DED account (the account hosting the hackathon), in a
---                single Snowsight worksheet, as ACCOUNTADMIN.
--- WHAT IT DOES : Verifies the Snowflake features behind ANWB's requirement list
---                (capability_matrix.json) are ENABLED and reachable in THIS
---                account/region - not just the challenge-exercise features.
+-- WHERE TO RUN : In your hackathon account, in a single Snowsight worksheet,
+--                as ACCOUNTADMIN.
+-- WHAT IT DOES : Checks that the Snowflake AI features the challenges use (plus
+--                a few extras) are enabled and reachable in this account/region.
 -- SAFETY       : 100% READ-ONLY. Creates nothing, changes nothing. Probes run
 --                in-memory inference / SHOW / ACCOUNT_USAGE reads only.
 -- HOW TO READ  : Run PART 0, then PART 1. PART 1 returns ONE JSON object with a
---                PASS/FAIL per capability, grouped by requirement category.
---                PART 2 is an optional manual/UI checklist for items SQL cannot
---                prove. Send me the PART 0 + PART 1 output.
+--                PASS/FAIL per feature, grouped by feature area. PART 2 is an
+--                optional UI checklist for items SQL cannot prove.
 -- ============================================================================
 
 -- ============================================================================
@@ -23,11 +21,11 @@ SELECT CURRENT_ACCOUNT()          AS account,
        CURRENT_AVAILABLE_ROLES()  AS available_roles;
 
 -- ============================================================================
--- PART 1 - Requirement-list capability report  (THE MAIN RESULT)
+-- PART 1 - Capability report  (THE MAIN RESULT)
 -- ----------------------------------------------------------------------------
--- One JSON object. Keys are prefixed with the capability_matrix.json category
--- so they group when sorted. Every value should read "PASS". A "FAIL" means
--- that feature is not enabled/reachable in this account/region.
+-- One JSON object. Keys are prefixed with a feature area so they group when
+-- sorted. Every value should read "PASS". A "FAIL" means that feature is not
+-- enabled/reachable in this account/region.
 -- ============================================================================
 EXECUTE IMMEDIATE $$
 DECLARE
@@ -184,38 +182,38 @@ $$;
 -- ============================================================================
 -- PART 2 - MANUAL / UI VERIFICATION CHECKLIST
 -- ----------------------------------------------------------------------------
--- These requirements from capability_matrix.json cannot be proven by SQL. Tick
--- them off in the Snowsight UI (a few minutes, ACCOUNTADMIN):
+-- A few features can't be proven by SQL. Tick them off in the Snowsight UI
+-- (a few minutes, ACCOUNTADMIN):
 --
---   [ ] Cortex AI Studio / Playground  (LLM Gateway: model comparison,
---       Evaluation: experiment playground, Low-Code Agent Builder)
+--   [ ] Cortex AI Studio / Playground  (model comparison, evaluation
+--       playground, low-code agent builder)
 --       -> Snowsight > AI & ML > Studio.  Confirm Playground opens and lists
 --          multiple models side by side.
---   [ ] Snowsight Agent Builder (Low Code Agent Builder requirement)
+--   [ ] Snowsight Agent Builder (low-code agent builder)
 --       -> Snowsight > AI & ML > Agents.  Confirm "Create agent" is available.
 --   [ ] Trust Center (Monitoring: system health / security scanners)
 --       -> Snowsight > Monitoring > Trust Center.  Confirm scanners are enabled.
---   [ ] Account Edition & SLA (Overall: Support with SLA)
+--   [ ] Account Edition & SLA
 --       -> Snowsight > Admin > Accounts.  Confirm edition (Enterprise required
 --          for Cortex Guardrails; Business Critical for 99.99% SLA / PHI).
---   [ ] Provisioned Throughput (LLM Gateway: priority TPM/RPM, latency)
---       -> Confirm with your Snowflake team whether PT is enabled if the POC
---          needs reserved model capacity (optional for the hackathon).
+--   [ ] Provisioned Throughput (priority throughput / latency)
+--       -> Confirm with your Snowflake team whether PT is enabled if you need
+--          reserved model capacity (optional for the hackathon).
 --   [ ] Multimodal image input + AI_PARSE_DOCUMENT + AI_TRANSCRIBE
---       -> These need a file staged in DED to test; validate during the RAG /
+--       -> These need a file staged to test; validate during the RAG /
 --          document challenge rather than here.
 --   [ ] Streaming & async COMPLETE (behavioural, tested via REST API / SDK,
 --       not a plain SQL probe).
---   [ ] Backup/DR (Overall): Time Travel is on by default; Replication is
---       account-config - confirm only if DR is in POC scope.
+--   [ ] Backup/DR: Time Travel is on by default; Replication is
+--       account-config - confirm only if disaster recovery is in scope.
 -- ============================================================================
 
 -- ============================================================================
 -- INTERPRETING RESULTS
 -- ----------------------------------------------------------------------------
 -- PART 1: every value should read "PASS" (or the expected "N/A" notes below).
---   * This account (DED) runs EU-only cross-region (AWS_EU/AZURE_EU) for data
---     residency. Under EU-only the kit uses mistral-large2 / llama3.3-70b.
+--   * If your account runs EU-only cross-region (AWS_EU/AZURE_EU) for data
+--     residency, the kit uses mistral-large2 / llama3.3-70b.
 --   * 00 Setting FAIL only if DISABLED  -> run, as ACCOUNTADMIN:
 --        ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'AWS_EU';
 --     (AWS_EU keeps inference in-region. ANY_REGION would add Claude/GPT +
@@ -227,5 +225,5 @@ $$;
 --   * SHOW-based checks showing 0 objects is FINE (nothing created yet); only
 --     an actual error is a real FAIL.
 --   * "Unknown function AI_JUDGE" is expected - LLM-as-judge uses AI_COMPLETE.
--- Send me the PART 0 + PART 1 output and I'll confirm full requirement coverage.
+-- Any FAIL prints a short reason; account-level fixes may need your ACCOUNTADMIN.
 -- ============================================================================
