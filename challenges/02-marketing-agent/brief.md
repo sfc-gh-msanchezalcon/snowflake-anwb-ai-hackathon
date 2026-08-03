@@ -48,6 +48,13 @@ messaging, assembles a full campaign plan, and **auto-generates a presentation d
 - [ ] Demonstrates an **agent workflow** — not one prompt, but multiple reasoning steps.
 - [ ] Shows **multi-step reasoning and execution** you can walk through.
 
+## Maps to ANWB's evaluation areas
+
+Building this use case demonstrates **LLM Gateway, RAG, Agent Runtime, Tool use, Prompt
+Management, Model Deployment (structured output), and Tracing / Observability** (plus Evaluation
+and Guardrails as stretches). See [`../../EVALUATION.md`](../../EVALUATION.md) for the full
+use-case-to-criteria map.
+
 ## Definition of done (demo)
 
 Given a product + audience, the agent returns an on-brand campaign plan and generates a deck

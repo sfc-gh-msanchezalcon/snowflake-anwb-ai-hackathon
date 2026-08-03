@@ -51,6 +51,12 @@ See [`tools/`](tools/) — mocks are built into `run_all.sql` (zero setup); real
 - [ ] The agent **answers travel questions** correctly and helpfully.
 - [ ] **Demonstrable value over a simple chat** — i.e. it grounds answers in data + live tools.
 
+## Maps to ANWB's evaluation areas
+
+Building this use case demonstrates **RAG, Agent Runtime, Tool use, LLM Gateway, and Tracing /
+Observability** (plus Guardrails and Evaluation as stretches). See
+[`../../EVALUATION.md`](../../EVALUATION.md) for the full use-case-to-criteria map.
+
 ## Definition of done (demo)
 
 A working agent (Cortex Agent, a notebook loop, or a Streamlit app) that answers all three sample

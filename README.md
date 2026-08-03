@@ -68,10 +68,14 @@ flowchart LR
 | **ReisNogWijzer** | AI travel assistant — RAG over travel/camping knowledge + tools (vehicle, weather, advisories). | [`challenges/01-reisnogwijzer/`](challenges/01-reisnogwijzer/) |
 | **Marketing Agent** | Multi-step agent — turns a product + audience into a campaign plan and a presentation deck. | [`challenges/02-marketing-agent/`](challenges/02-marketing-agent/) |
 
+These are ANWB's pilot use cases. See **[EVALUATION.md](EVALUATION.md)** for how each one maps to
+the capability areas ANWB is evaluating (RAG, Agent Runtime, Tool use, LLM Gateway, Tracing, …).
+
 ## Repository layout
 
 ```
 START_HERE.md              Front door: pick a challenge, pick SQL or notebook, go.
+EVALUATION.md              ANWB use cases mapped to their capability evaluation areas.
 preflight_check.sql        Optional read-only account readiness check (run as ACCOUNTADMIN).
 facilitator/runbook.md     Run-of-show, provisioning notes, cleanup.
 challenges/
