@@ -1,7 +1,15 @@
-# ANWB AI Hackathon
+<p align="center">
+  <img src="assets/ANWB-logo.png" alt="ANWB" height="72">
+  &nbsp;&nbsp;&nbsp;<b>&times;</b>&nbsp;&nbsp;&nbsp;
+  <img src="assets/snowflake-logo.svg" alt="Snowflake" height="40">
+</p>
 
-> Build a working GenAI app on Snowflake in a day. Two self-contained use cases — everything you
-> need to run each one is inside its challenge folder.
+<h1 align="center">ANWB AI Hackathon</h1>
+
+<p align="center">
+  Build a working GenAI app on Snowflake in a day.<br>
+  Two self-contained use cases — everything you need to run each one is inside its challenge folder.
+</p>
 
 ## Repository layout
 
@@ -11,6 +19,7 @@ AGENTS.md                  Project context for Cortex Code (CoCo) — auto-loade
 preflight_check.sql        Optional read-only account readiness check (run as ACCOUNTADMIN).
 capability_tour.sql        Optional runnable tour of Cortex capabilities beyond the two use cases.
 .snowflake/cortex/skills/  Optional CoCo skills: /reisnogwijzer and /marketing-agent.
+assets/                    Logos used in this README (ANWB, Snowflake).
 challenges/
   01-reisnogwijzer/        reisnogwijzer.sql · reisnogwijzer.ipynb · app.py · tools/real_tools.sql
   02-marketing-agent/      marketing_agent.sql · marketing_agent.ipynb · app.py
