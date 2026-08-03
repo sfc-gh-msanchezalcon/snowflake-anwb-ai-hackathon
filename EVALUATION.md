@@ -7,6 +7,12 @@ GenAI platform assessment, so you can see which criteria you're demonstrating as
 > This is a **category-level** map. ANWB's full, detailed criteria and the platform scorecard are
 > the Day-1 capability assessment and are kept as a separate internal reference - ask the facilitator.
 
+> **How the pilot is scored.** Day 1 ("Understand, Assess, Score") is a capability assessment: ANWB
+> scores each capability category on their own, and Snowflake brings its own scorecard for the same
+> categories. The two are then compared side by side. The use cases below are **ANWB's own
+> definitions** from the pilot plan — vision, capabilities, tools, sample questions, and success
+> criteria are reproduced faithfully so what you build maps directly to what's being assessed.
+
 ## ANWB's use cases
 
 | Use case | What it is | Build it in |

@@ -39,18 +39,33 @@ and each challenge just creates its schema inside it.
   `CREATE GIT REPOSITORY` pointing at this repo so notebooks/SQL land in Snowsight directly
   (needs a one-time `CREATE API INTEGRATION` for github.com; public repo = no secret).
 
-## Suggested run of show (Day 2 build)
+## Suggested run of show (Day 2 build — "Build, Learn, Validate")
 
 1. Kickoff + pick challenge per team (brief.md).
 2. Teams provision (run_all.sql or notebook) - a few minutes.
 3. Build, trying first and escalating through CoCo -> docs -> hints.
-4. Demos: each team shows their assistant/agent answering the sample questions.
+4. Demos: each team presents in ANWB's requested structure (15 min + Q&A):
+   1. Problem statement
+   2. Architecture
+   3. Snowflake capabilities used
+   4. Live demonstration (agent answering the sample questions)
+   5. Lessons learned
 
-## Day 1 (capability assessment)
+**Closing / evaluation discussion (ANWB's framing):** what worked well (technical capabilities,
+developer experience, agent functionality, RAG quality) and what didn't (technical gaps, missing
+integrations, performance concerns, governance limitations).
+
+## Day 1 (capability assessment — "Understand, Assess, Score")
 
 Day 1 is the scored capability assessment against ANWB's "Capabilities to test for GenAI" list.
-That's covered by the scorecard and the readiness check, shared separately (internal Snowflake
-reference, not in this public repo). Ask Miriam for the current scorecard PDF.
+The capability list is divided among ANWB participants; each reviews their assigned capabilities,
+tests functionality, documents findings, and assigns a score.
+
+**Scoring is done independently on both sides, then compared.** ANWB scores each capability
+category on their own; Snowflake brings its own scorecard for the same categories; the two are
+laid side by side to surface agreement and gaps. Snowflake's scorecard and the EU-aware readiness
+check are shared separately (internal reference, not in this public repo) — ask Miriam for the
+current scorecard PDF. Keep the two independent until the compare step so the exercise stays honest.
 
 ## Cleanup
 
