@@ -6,15 +6,15 @@
 -- created zero-setup MOCK tools that work offline.
 -- Run this AFTER reisnogwijzer.sql (it reuses the same database + schema).
 -- ----------------------------------------------------------------------------
--- NOTE - real and mock tools return DIFFERENT data, so they are not fully 1:1:
+-- NOTE - the real tools are drop-in replacements for the mocks:
 --   * Signatures match (same args, VARIANT out), so real_rdw_lookup / real_weather
---     are drop-in swaps for the mock versions in the agent, app or SQL.
---   * BUT the JSON fields differ. In particular, mock_rdw_lookup returns a
---     'euronorm' field that Q1's Munich diesel-ban logic relies on; the live RDW
---     response here does NOT include euronorm (only merk/model/brandstof/bouwjaar/
---     voertuigsoort/massa_ledig_kg). So the real RDW tool won't drive the
---     emission-zone reasoning the same way - a production build would derive the
---     EURO norm from year + fuel. real_weather has no such gap.
+--     swap straight in for the mock versions in the agent, app or SQL.
+--   * real_rdw_lookup returns live RDW data AND a derived 'euronorm' (parsed from
+--     RDW's emissiecode_omschrijving / uitlaatemissieniveau), so Q1's Munich
+--     diesel-ban logic works end-to-end on real data - just like the mock.
+--   * The VALUES differ from the mock's fictional demo vehicles, and the demo
+--     plates in reisnogwijzer.sql (XD-429-P, ...) are fictional - real_rdw_lookup
+--     needs a REAL Dutch plate (the smoke test at the bottom uses a working one).
 --   * There is no real advisory or currency tool - keep those on mock.
 -- ============================================================================
 SET db = 'ANWB_AI_HACKATHON';   -- match the value you used in reisnogwijzer.sql
@@ -50,7 +50,7 @@ EXTERNAL_ACCESS_INTEGRATIONS = (hackathon_ext_access)
 PACKAGES = ('requests')
 AS
 $$
-import requests
+import requests, re
 def lookup(kenteken):
     plate = (kenteken or '').replace('-', '').replace(' ', '').upper()
     base = 'https://opendata.rdw.nl/resource/'
@@ -61,22 +61,35 @@ def lookup(kenteken):
             return {'kenteken': kenteken, 'found': False, 'note': 'plate not found in RDW'}
         v = rows[0]
         fuel = None
+        euronorm = None
+        emissieniveau = None
         try:
             fr = requests.get(base + '8ys7-d773.json', params={'kenteken': plate}, timeout=10)
             fj = fr.json()
             if fj:
                 fuel = fj[0].get('brandstof_omschrijving')
+                emissieniveau = fj[0].get('uitlaatemissieniveau')     # e.g. 'EURO 6'
+                ec = fj[0].get('emissiecode_omschrijving')            # e.g. '6'
+                if ec is not None and str(ec).strip().isdigit():
+                    euronorm = int(str(ec).strip())
+                elif emissieniveau:
+                    m = re.search(r'(\d+)', emissieniveau)
+                    if m:
+                        euronorm = int(m.group(1))
         except Exception:
             pass
         return {
             'kenteken': kenteken,
             'found': True,
+            'source': 'RDW open data (live via EAI)',
             'merk': v.get('merk'),
             'model': v.get('handelsbenaming'),
             'brandstof': fuel,
+            'euronorm': euronorm,                 # derived - drives Q1 diesel-ban logic
+            'uitlaatemissieniveau': emissieniveau,
             'bouwjaar': (v.get('datum_eerste_toelating') or '')[:4],
             'voertuigsoort': v.get('voertuigsoort'),
-            'massa_ledig_kg': v.get('massa_ledig_voertuig'),
+            'gewicht_kg': v.get('massa_ledig_voertuig'),
         }
     except Exception as e:
         return {'kenteken': kenteken, 'error': str(e)}
@@ -117,5 +130,9 @@ def get_weather(location):
         return {'location': location, 'error': str(e)}
 $$;
 
--- Smoke test (needs live network access)
-SELECT real_rdw_lookup('XD-429-P') AS rdw, real_weather('Munich') AS weather;
+-- Smoke test - proves the External Access Integration reached the LIVE APIs.
+-- open-meteo needs no plate. RDW needs a REAL Dutch plate (the demo plates in
+-- reisnogwijzer.sql are fictional); 0047ZZ is a real diesel, EURO 6, so you can
+-- see the derived 'euronorm' come back from live data.
+SELECT real_weather('Munich')    AS live_weather,     -- live forecast (open-meteo)
+       real_rdw_lookup('0047ZZ') AS live_vehicle;     -- live RDW record incl. euronorm
