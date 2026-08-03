@@ -26,26 +26,26 @@
 -- ============================================================================
 -- CONFIG  --  the only knobs. Edit here to change model, warehouse, or DB.
 -- ============================================================================
-SET hb_db    = 'HACKATHON_BOX';      -- your DB. For a private copy on a shared
-                                     -- account, set e.g. 'HACKATHON_BOX_MSA'.
-SET hb_wh    = 'HACKATHON_WH';       -- warehouse (created if missing)
-SET hb_model = 'mistral-large2';     -- EU-native (Frankfurt). Alt: 'llama3.3-70b'.
+SET db    = 'ANWB_AI_HACKATHON';      -- your DB. For a private copy on a shared
+                                     -- account, set e.g. 'ANWB_AI_HACKATHON_MSA'.
+SET wh    = 'ANWB_AI_HACKATHON_WH';       -- warehouse (created if missing)
+SET model = 'mistral-large2';     -- EU-native (Frankfurt). Alt: 'llama3.3-70b'.
                                      -- US-only models (Claude/GPT/llama4-maverick)
                                      -- are NOT reachable under EU-only cross-region.
 
 -- ----------------------------------------------------------------------------
 -- Base (idempotent): database, warehouse, schema
 -- ----------------------------------------------------------------------------
-CREATE DATABASE IF NOT EXISTS IDENTIFIER($hb_db)
+CREATE DATABASE IF NOT EXISTS IDENTIFIER($db)
     COMMENT = 'ANWB AI hackathon - ReisNogWijzer';
-CREATE WAREHOUSE IF NOT EXISTS IDENTIFIER($hb_wh)
+CREATE WAREHOUSE IF NOT EXISTS IDENTIFIER($wh)
     WAREHOUSE_SIZE = 'SMALL' AUTO_SUSPEND = 60 AUTO_RESUME = TRUE
     INITIALLY_SUSPENDED = TRUE COMMENT = 'Compute for the ANWB AI hackathon';
 
-USE DATABASE IDENTIFIER($hb_db);
+USE DATABASE IDENTIFIER($db);
 CREATE SCHEMA IF NOT EXISTS TRAVEL COMMENT = 'Challenge 1 - ReisNogWijzer';
 USE SCHEMA TRAVEL;
-USE WAREHOUSE IDENTIFIER($hb_wh);
+USE WAREHOUSE IDENTIFIER($wh);
 
 -- ----------------------------------------------------------------------------
 -- CAMPSITES - mirrors campingnavigator.com fields (gps, seasonal Basistarief,
@@ -368,13 +368,13 @@ SELECT 'Travel data loaded: '
 -- Indexing takes ~1 minute. Verify with SHOW CORTEX SEARCH SERVICES.
 -- ============================================================================
 -- (Built via EXECUTE IMMEDIATE because the WAREHOUSE clause here does not accept
---  IDENTIFIER($hb_wh); this keeps the warehouse driven by the CONFIG variable.)
+--  IDENTIFIER($wh); this keeps the warehouse driven by the CONFIG variable.)
 EXECUTE IMMEDIATE $$
 DECLARE stmt STRING;
 BEGIN
   stmt := 'CREATE OR REPLACE CORTEX SEARCH SERVICE TRAVEL_KB '
        || 'ON content ATTRIBUTES title, category, source_type, source_url '
-       || 'WAREHOUSE = ' || $hb_wh || ' TARGET_LAG = ''1 hour'' '
+       || 'WAREHOUSE = ' || $wh || ' TARGET_LAG = ''1 hour'' '
        || 'AS (SELECT doc_id, title, category, source_type, source_url, content FROM KB_DOCUMENTS)';
   EXECUTE IMMEDIATE :stmt;
   RETURN 'TRAVEL_KB search service created';
@@ -479,7 +479,7 @@ FROM EMISSION_ZONES WHERE LOWER(city) = 'munich';
 -- Step 3 - Ask the model. AI_COMPLETE runs an LLM right inside SQL; we hand it the
 -- vehicle + zone facts so the answer is grounded, not guessed. The prompt spells out
 -- the diesel DRIVING BAN (diesel_ban_min_euro) vs the green-sticker rule so it reasons right.
-SELECT AI_COMPLETE($hb_model,
+SELECT AI_COMPLETE($model,
     'Je bent ReisNogWijzer, de reisassistent van de ANWB. Antwoord in het Nederlands, kort en concreet, begin met Ja of Nee. '
  || 'Voertuig: ' || mock_rdw_lookup('XD-429-P')::STRING
  || '  Regels milieuzone Munchen (let goed op het verschil): '
@@ -495,7 +495,7 @@ SELECT AI_COMPLETE($hb_model,
 -- This is RAG in one statement: SEARCH_PREVIEW queries the Cortex Search service
 -- (hybrid vector + keyword) for the most relevant docs, and AI_COMPLETE writes the
 -- plan grounded in them. SEARCH_PREVIEW returns JSON; we pass the top hits to the model.
-SELECT AI_COMPLETE($hb_model,
+SELECT AI_COMPLETE($model,
     'Je bent ReisNogWijzer. Gebruik onderstaande kennisbank-fragmenten om een beknopt 2-weken kampeerplan '
  || 'door Oostenrijk en Italie te maken (route, 3-4 campings, let op vignetten/tol). Antwoord in het Nederlands.'
  || '  Kennisbank: ' || (
@@ -510,13 +510,13 @@ SELECT AI_COMPLETE($hb_model,
 -- Step 1 - Call the advisory tool (a SQL function) to fetch the raw fact.
 SELECT travel_advisory_tool('Croatia') AS advisory_raw;
 -- Step 2 - Summarise it in Dutch, in the ANWB voice, with AI_COMPLETE.
-SELECT AI_COMPLETE($hb_model,
+SELECT AI_COMPLETE($model,
     'Vat dit reisadvies bondig samen voor een ANWB-lid, in het Nederlands, met de kleurcode: '
  || travel_advisory_tool('Croatia')::STRING) AS advisory_summary;
 
 
 -- Done - a quick readiness summary (database, model, search service, tools).
-SELECT 'ReisNogWijzer ready in ' || $hb_db || '.TRAVEL  |  model=' || $hb_model
+SELECT 'ReisNogWijzer ready in ' || $db || '.TRAVEL  |  model=' || $model
     || '  |  search=TRAVEL_KB  |  tools: mock_rdw_lookup, mock_weather, travel_advisory_tool, mock_currency'
     AS status;
 
@@ -526,9 +526,9 @@ SELECT 'ReisNogWijzer ready in ' || $hb_db || '.TRAVEL  |  model=' || $hb_model
 -- ----------------------------------------------------------------------------
 -- STEP A - Build the ReisNogWijzer agent
 --   1. Left nav > AI & ML > Agents > "+ Agent" (Create agent).
---   2. Schema HACKATHON_BOX.TRAVEL; name it REISNOGWIJZER; Create.
+--   2. Schema ANWB_AI_HACKATHON.TRAVEL; name it REISNOGWIJZER; Create.
 --   3. Open the agent > Tools:
---        - Add > Cortex Search  : HACKATHON_BOX.TRAVEL.TRAVEL_KB   (travel KB / RAG)
+--        - Add > Cortex Search  : ANWB_AI_HACKATHON.TRAVEL.TRAVEL_KB   (travel KB / RAG)
 --        - Add > Custom tool (function), schema TRAVEL:
 --            MOCK_RDW_LOOKUP(VARCHAR)       - vehicle info from a licence plate
 --            MOCK_WEATHER(VARCHAR)          - travel weather
@@ -543,8 +543,8 @@ SELECT 'ReisNogWijzer ready in ' || $hb_db || '.TRAVEL  |  model=' || $hb_model
 --      You meet the criteria when RAG + at least two tools are actually called.
 --
 -- STEP B (optional) - Ship the chat app
---   Projects > Streamlit > "+ Streamlit App"; warehouse HACKATHON_WH, database
---   HACKATHON_BOX, schema TRAVEL. Paste app.py from this folder and Run.
+--   Projects > Streamlit > "+ Streamlit App"; warehouse ANWB_AI_HACKATHON_WH, database
+--   ANWB_AI_HACKATHON, schema TRAVEL. Paste app.py from this folder and Run.
 --
 -- STEP C (optional) - Inspect what the agent did (AI Observability)
 --   AI & ML > Agents > REISNOGWIJZER > Monitoring: traces, tool calls, latency, tokens.

@@ -66,7 +66,7 @@ entirely on Snowflake Cortex, the same platform being assessed.
   top of the `.sql` file (and the first notebook cell). Default model `mistral-large2` (EU-native);
   alternative `llama3.3-70b`. *US-only models (Claude, OpenAI GPT, llama4-maverick) aren't reachable
   under EU-only cross-region inference.*
-- **Sharing one account?** Set `hb_db` to your own name (e.g. `HACKATHON_BOX_MSA`) in the CONFIG
+- **Sharing one account?** Set `db` to your own name (e.g. `ANWB_AI_HACKATHON_MSA`) in the CONFIG
   block for a private copy — otherwise runs don't collide (idempotent, per-challenge schema).
 - **Your account needs:** Cortex AI enabled (EU-only cross-region is fine), Enterprise edition, and
   a role that can create a database / warehouse / schema. The optional live tools / `.pptx` deck
@@ -78,6 +78,6 @@ entirely on Snowflake Cortex, the same platform being assessed.
   It's read-only; any `FAIL` prints a one-line fix (admin-level items go to your account admin).
 - **Your demo:** problem statement → architecture → Snowflake capabilities used → live demo →
   lessons learned (15 min + Q&A).
-- **When you're done:** `DROP DATABASE IF EXISTS HACKATHON_BOX;` and `DROP WAREHOUSE IF EXISTS HACKATHON_WH;` (or your own `hb_db`).
+- **When you're done:** `DROP DATABASE IF EXISTS ANWB_AI_HACKATHON;` and `DROP WAREHOUSE IF EXISTS ANWB_AI_HACKATHON_WH;` (or your own `db`).
 - **No API keys needed;** sample data is synthetic, shaped to mirror ANWB's real datasets. It's a
   sandbox — build and break things.

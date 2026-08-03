@@ -5,7 +5,7 @@ from snowflake.snowpark.context import get_active_session
 
 # Marketing Agent — reference Streamlit app (Streamlit in Snowflake)
 session = get_active_session()
-session.sql("USE DATABASE HACKATHON_BOX").collect()
+session.sql("USE DATABASE ANWB_AI_HACKATHON").collect()
 
 st.set_page_config(page_title="ANWB Marketing Agent", page_icon="📣", layout="wide")
 st.title("📣 ANWB Marketing Agent")
@@ -20,7 +20,7 @@ def search_kb(query, limit=4):
     spec = json.dumps({"query": query, "columns": ["title", "content"], "limit": limit})
     row = session.sql(
         "SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(?, ?) AS r",
-        params=["HACKATHON_BOX.MARKETING.MARKETING_KB", spec],
+        params=["ANWB_AI_HACKATHON.MARKETING.MARKETING_KB", spec],
     ).collect()[0]
     return json.loads(row["R"]).get("results", [])
 

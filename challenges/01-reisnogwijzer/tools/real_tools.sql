@@ -6,12 +6,12 @@
 -- created zero-setup MOCK tools that work offline.
 -- Run this AFTER reisnogwijzer.sql (it reuses the same database + schema).
 -- ============================================================================
-SET hb_db = 'HACKATHON_BOX';   -- match the value you used in reisnogwijzer.sql
-SET hb_wh = 'HACKATHON_WH';
+SET db = 'ANWB_AI_HACKATHON';   -- match the value you used in reisnogwijzer.sql
+SET wh = 'ANWB_AI_HACKATHON_WH';
 USE ROLE ACCOUNTADMIN;
-USE DATABASE IDENTIFIER($hb_db);
+USE DATABASE IDENTIFIER($db);
 USE SCHEMA TRAVEL;
-USE WAREHOUSE IDENTIFIER($hb_wh);
+USE WAREHOUSE IDENTIFIER($wh);
 
 -- 1. Allow outbound HTTPS to the two public APIs only
 CREATE OR REPLACE NETWORK RULE hackathon_api_network_rule

@@ -22,26 +22,26 @@
 -- ============================================================================
 -- CONFIG  --  the only knobs. Edit here to change model, warehouse, or DB.
 -- ============================================================================
-SET hb_db    = 'HACKATHON_BOX';      -- your DB. For a private copy on a shared
-                                     -- account, set e.g. 'HACKATHON_BOX_MSA'.
-SET hb_wh    = 'HACKATHON_WH';       -- warehouse (created if missing)
-SET hb_model = 'mistral-large2';     -- EU-native (Frankfurt). Alt: 'llama3.3-70b'.
+SET db    = 'ANWB_AI_HACKATHON';      -- your DB. For a private copy on a shared
+                                     -- account, set e.g. 'ANWB_AI_HACKATHON_MSA'.
+SET wh    = 'ANWB_AI_HACKATHON_WH';       -- warehouse (created if missing)
+SET model = 'mistral-large2';     -- EU-native (Frankfurt). Alt: 'llama3.3-70b'.
                                      -- US-only models (Claude/GPT/llama4-maverick)
                                      -- are NOT reachable under EU-only cross-region.
 
 -- ----------------------------------------------------------------------------
 -- Base (idempotent): database, warehouse, schema
 -- ----------------------------------------------------------------------------
-CREATE DATABASE IF NOT EXISTS IDENTIFIER($hb_db)
+CREATE DATABASE IF NOT EXISTS IDENTIFIER($db)
     COMMENT = 'ANWB AI hackathon - Marketing Agent';
-CREATE WAREHOUSE IF NOT EXISTS IDENTIFIER($hb_wh)
+CREATE WAREHOUSE IF NOT EXISTS IDENTIFIER($wh)
     WAREHOUSE_SIZE = 'SMALL' AUTO_SUSPEND = 60 AUTO_RESUME = TRUE
     INITIALLY_SUSPENDED = TRUE COMMENT = 'Compute for the ANWB AI hackathon';
 
-USE DATABASE IDENTIFIER($hb_db);
+USE DATABASE IDENTIFIER($db);
 CREATE SCHEMA IF NOT EXISTS MARKETING COMMENT = 'Challenge 2 - Marketing Agent';
 USE SCHEMA MARKETING;
-USE WAREHOUSE IDENTIFIER($hb_wh);
+USE WAREHOUSE IDENTIFIER($wh);
 
 
 -- ----------------------------------------------------------------------------
@@ -157,7 +157,7 @@ EXECUTE IMMEDIATE $$
 BEGIN
   EXECUTE IMMEDIATE 'CREATE OR REPLACE CORTEX SEARCH SERVICE MARKETING_KB '
     || 'ON content ATTRIBUTES title, category, source '
-    || 'WAREHOUSE = ' || $hb_wh || ' TARGET_LAG = ''1 hour'' '
+    || 'WAREHOUSE = ' || $wh || ' TARGET_LAG = ''1 hour'' '
     || 'AS (SELECT doc_id, title, category, source, content FROM KB_DOCUMENTS)';
   RETURN 'MARKETING_KB search service created';
 END;
@@ -179,7 +179,7 @@ WHERE p.product_id = 'P01' AND s.segment_id = 'S01';
 -- Step 2 - Build the campaign plan. RAG again: SEARCH_PREVIEW pulls brand-voice +
 -- deck-structure docs from the MARKETING_KB Cortex Search service, and AI_COMPLETE
 -- (an LLM in SQL) returns a structured JSON plan grounded in ANWB's guidelines.
-SELECT AI_COMPLETE($hb_model,
+SELECT AI_COMPLETE($model,
     'Je bent de Marketing Agent van de ANWB. Maak een campagneplan als JSON met velden: '
  || 'campaign_name, big_idea, audience, key_messages (array), channels (array), kpis (array), '
  || 'slides (array van {title, bullets[]}). Gebruik de merkstem en de deckstructuur uit de kennisbank. '
@@ -196,7 +196,7 @@ SELECT AI_COMPLETE($hb_model,
 
 -- Step 3 - Generate the deck. AI_COMPLETE turns the plan into a self-contained HTML
 -- slide deck (works everywhere, no extra packages). A real .pptx is the optional stretch below.
-SELECT AI_COMPLETE($hb_model,
+SELECT AI_COMPLETE($model,
     'Maak een nette, op zichzelf staande HTML-presentatie voor een ANWB-campagne: een <section> per slide, '
  || 'inline CSS, ANWB-geel #FFCC00 als accent. Volg de deckstructuur (titel, opportunity, doelgroep, strategie, '
  || 'messaging, kanalen, timeline, KPIs, call-to-action). Alleen HTML, geen uitleg, geen markdown-fences. '
@@ -245,7 +245,7 @@ $$;
 
 
 -- Done - a quick readiness summary (database, model, search service, deck options).
-SELECT 'Marketing Agent ready in ' || $hb_db || '.MARKETING  |  model=' || $hb_model
+SELECT 'Marketing Agent ready in ' || $db || '.MARKETING  |  model=' || $model
     || '  |  search=MARKETING_KB  |  deck: HTML (default) + optional .pptx via build_deck'
     AS status;
 
@@ -255,9 +255,9 @@ SELECT 'Marketing Agent ready in ' || $hb_db || '.MARKETING  |  model=' || $hb_m
 -- ----------------------------------------------------------------------------
 -- STEP A - Build the Marketing Agent
 --   1. Left nav > AI & ML > Agents > "+ Agent" (Create agent).
---   2. Schema HACKATHON_BOX.MARKETING; name it MARKETING_AGENT; Create.
+--   2. Schema ANWB_AI_HACKATHON.MARKETING; name it MARKETING_AGENT; Create.
 --   3. Open the agent > Tools > Add > Cortex Search:
---        HACKATHON_BOX.MARKETING.MARKETING_KB   (brand voice + deck structure)
+--        ANWB_AI_HACKATHON.MARKETING.MARKETING_KB   (brand voice + deck structure)
 --   4. Model = mistral-large2. Instructions: "You are the ANWB Marketing Agent.
 --      Given a product + audience, produce a structured campaign plan and a
 --      presentation outline, grounded in the brand knowledge base."
@@ -266,8 +266,8 @@ SELECT 'Marketing Agent ready in ' || $hb_db || '.MARKETING  |  model=' || $hb_m
 --      Success = a structured plan + presentation output with visible steps.
 --
 -- STEP B (optional) - Ship the app
---   Projects > Streamlit > "+ Streamlit App"; warehouse HACKATHON_WH, database
---   HACKATHON_BOX, schema MARKETING. Paste app.py from this folder and Run.
+--   Projects > Streamlit > "+ Streamlit App"; warehouse ANWB_AI_HACKATHON_WH, database
+--   ANWB_AI_HACKATHON, schema MARKETING. Paste app.py from this folder and Run.
 --
 -- STEP C (optional) - Real .pptx deck
 --   Enable Anaconda (Admin > Billing & Terms), then
