@@ -1,12 +1,22 @@
 -- ============================================================================
--- CHALLENGE 2 - Marketing Agent  |  RUN-IT-ALL (SQL track)
+-- Challenge 2 - Marketing Agent
 -- ----------------------------------------------------------------------------
--- One self-contained file. Provisions everything this use case needs, then
--- builds a multi-step marketing agent: a campaign PLAN + a presentation DECK.
---   * Snowsight : open a SQL worksheet, paste this file, click "Run All".
---   * CLI       : snow sql -c <connection> -f run_all.sql
--- Idempotent and independent of Challenge 1. The deck defaults to HTML (no
--- extra packages); a real .pptx is an optional stretch (needs python-pptx).
+-- WHAT YOU'RE BUILDING: a multi-step marketing agent that turns a product +
+-- audience segment into a structured campaign PLAN and a presentation DECK.
+--
+-- SUCCESS CRITERIA (ANWB): a structured marketing plan; a presentation output;
+-- a demonstrable agent workflow; visible multi-step reasoning and execution.
+--
+-- HOW TO RUN - two ways, same result:
+--   SQL      : paste this file into a Snowsight worksheet and click Run All
+--              (or run: snow sql -c <connection> -f run_all.sql).
+--   Notebook : import marketing_agent.ipynb into Snowsight and Run All.
+-- After Run All, follow the SNOWSIGHT STEPS at the bottom to build the agent
+-- (and, optionally, the app).
+--
+-- Self-contained and idempotent; independent of Challenge 1. The deck defaults
+-- to HTML (no extra packages); a real .pptx is an optional stretch that needs
+-- python-pptx (accept Anaconda terms in Snowsight > Admin > Billing & Terms).
 -- ============================================================================
 
 -- ============================================================================
@@ -155,9 +165,8 @@ $$;
 
 
 -- ============================================================================
--- BUILD  --  the multi-step Marketing Agent, in SQL. This is the reference
--- path; try the notebook (marketing_agent.ipynb) if you'd rather build it
--- yourself. Scenario: a campaign for one product + audience segment.
+-- BUILD  --  the multi-step Marketing Agent in SQL. Run these blocks top to
+-- bottom. Scenario: a campaign for one product + audience segment.
 -- ============================================================================
 
 -- --- Step 1: pick a product + segment (the agent's inputs) -------------------
@@ -232,24 +241,36 @@ END;
 $$;
 
 
--- ============================================================================
--- UI STEPS  --  the parts you do in Snowsight (SQL can't click for you)
--- ----------------------------------------------------------------------------
--- [ ] UI STEP 1 (optional) - Build this as a visual Cortex Agent:
---       Snowsight > AI & ML > Agents > Create agent. Add MARKETING_KB as a
---       Cortex Search tool; set the model to hb_model (mistral-large2). Ask it
---       to plan a campaign for a product + segment.
--- [ ] UI STEP 2 (optional) - Ship a UI:
---       Snowsight > Projects > Streamlit > + Streamlit App (database = hb_db,
---       schema = MARKETING). Paste app.py from this folder.
--- [ ] UI STEP 3 (optional) - Real .pptx:
---       If you ran the stretch above, CALL build_deck(<slides JSON>, 'deck.pptx')
---       and download it from the DECKS stage (Data > Databases > ... > DECKS).
--- [ ] UI STEP 4 (optional) - Inspect agent traces:
---       Snowsight > AI & ML > Agents > (your agent) > Monitoring.
--- ============================================================================
-
 -- Final readiness line
 SELECT 'Marketing Agent ready in ' || $hb_db || '.MARKETING  |  model=' || $hb_model
     || '  |  search=MARKETING_KB  |  deck: HTML (default) + optional .pptx via build_deck'
     AS status;
+
+-- ============================================================================
+-- SNOWSIGHT STEPS  --  the parts you do in the Snowsight UI (clicks, not SQL).
+-- Do these after Run All above succeeds.
+-- ----------------------------------------------------------------------------
+-- STEP A - Build the Marketing Agent
+--   1. Left nav > AI & ML > Agents > "+ Agent" (Create agent).
+--   2. Schema HACKATHON_BOX.MARKETING; name it MARKETING_AGENT; Create.
+--   3. Open the agent > Tools > Add > Cortex Search:
+--        HACKATHON_BOX.MARKETING.MARKETING_KB   (brand voice + deck structure)
+--   4. Model = mistral-large2. Instructions: "You are the ANWB Marketing Agent.
+--      Given a product + audience, produce a structured campaign plan and a
+--      presentation outline, grounded in the brand knowledge base."
+--   5. Save, open the chat, and ask e.g.:
+--        - "Maak een campagne voor ANWB Wegenwacht Europa voor actieve senioren."
+--      Success = a structured plan + presentation output with visible steps.
+--
+-- STEP B (optional) - Ship the app
+--   Projects > Streamlit > "+ Streamlit App"; warehouse HACKATHON_WH, database
+--   HACKATHON_BOX, schema MARKETING. Paste app.py from this folder and Run.
+--
+-- STEP C (optional) - Real .pptx deck
+--   Enable Anaconda (Admin > Billing & Terms), then
+--     CALL MARKETING.build_deck(<slides JSON>, 'deck.pptx');
+--   and download it from the DECKS stage (Data > Databases > ... > DECKS).
+--
+-- STEP D (optional) - Inspect what the agent did (AI Observability)
+--   AI & ML > Agents > MARKETING_AGENT > Monitoring: traces, tool calls, latency, tokens.
+-- ============================================================================

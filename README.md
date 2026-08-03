@@ -1,38 +1,64 @@
 # ANWB AI Hackathon
 
-> Build a working GenAI app on Snowflake in a day. Everything you need — data, tools, hints, and a
-> finished reference — is in this repo. Pick a challenge, pick how you want to work, and go.
+> Build a working GenAI app on Snowflake in a day. Two self-contained use cases — everything you
+> need to run each one is inside its challenge folder.
 
-## Quickstart
+## Repository layout
 
-### 1. Pick a challenge
+```
+README.md                  This guide: how to run + what's being evaluated.
+preflight_check.sql        Optional read-only account readiness check (run as ACCOUNTADMIN).
+challenges/
+  01-reisnogwijzer/        run_all.sql · reisnogwijzer.ipynb · app.py · tools/real_tools.sql
+  02-marketing-agent/      run_all.sql · marketing_agent.ipynb · app.py
+```
 
-| Challenge | What you build | Folder |
+Each challenge is independent and self-contained. General hackathon info lives here in the README;
+the detailed, step-by-step build for each use case lives in its own folder — in two forms, SQL and
+notebook.
+
+## The two use cases
+
+| Use case | What you build | Folder |
 |---|---|---|
 | **ReisNogWijzer** | An AI travel assistant: RAG over travel/camping knowledge + tools (vehicle, weather, advisories) that answers real trip questions. | [`challenges/01-reisnogwijzer/`](challenges/01-reisnogwijzer/) |
 | **Marketing Agent** | A multi-step agent that turns a product + audience into a campaign plan **and** a presentation deck. | [`challenges/02-marketing-agent/`](challenges/02-marketing-agent/) |
 
-The two challenges are independent — you only need one. Each folder is self-contained.
+## How to run
 
-### 2. Run it
+1. **Pick a use case** and open its folder.
+2. **Run it one of two ways — same result, pick whichever you prefer:**
+   - **SQL:** paste `run_all.sql` into a Snowsight worksheet → **Run All** (or `snow sql -c <conn> -f challenges/01-reisnogwijzer/run_all.sql`).
+   - **Notebook:** import `<usecase>.ipynb` into Snowsight → pick a warehouse + database → **Run All**.
+   Both provision everything (idempotent — no separate setup step) and build the use case.
+3. **Then follow the "SNOWSIGHT STEPS"** at the bottom of `run_all.sql` (or the last notebook cell)
+   — a step-by-step, click-by-click guide to build the Cortex Agent and, optionally, ship the
+   Streamlit app and inspect AI Observability. Each file is fully self-guiding; you don't need any
+   other document.
 
-Open your challenge folder and pick one way — both provision everything and build the use case
-(idempotent, no separate setup step):
+## What ANWB is evaluating (and how each use case maps)
 
-- **SQL:** paste `run_all.sql` into a Snowsight worksheet → **Run All** &nbsp;(or `snow sql -c <conn> -f challenges/01-reisnogwijzer/run_all.sql`)
-- **Notebook:** import `<usecase>.ipynb` (`reisnogwijzer.ipynb` / `marketing_agent.ipynb`) into Snowsight → pick a warehouse + database → **Run All**
+ANWB's "Capabilities to test for GenAI" list groups into **11 capability areas**: **Overall, LLM
+Gateway, Evaluation, Guardrails, Tracing, Prompt management, Agent registry, Skill registry, Tool
+registry, RAG, and Agent runtime** (Governance / IAM / RBAC sits inside *Overall*; the no-code
+agent builder inside *Agent runtime*). Building either use case exercises the areas below — both run
+entirely on Snowflake Cortex, the same platform being assessed.
 
-### 3. Build & present
+| Capability area | ReisNogWijzer | Marketing Agent |
+|---|:---:|:---:|
+| Overall (platform, governance/RBAC, ops) | ● | ● |
+| LLM Gateway (model calls, compare models) | ● | ● |
+| RAG (Cortex Search over a knowledge base) | ● | ● |
+| Agent runtime (multi-step orchestration) | ● | ● |
+| Tool registry (custom tools / functions) | ● (vehicle, weather, advisory) | ● (deck generator) |
+| Agent registry (build as a Cortex Agent) | ● | ● |
+| Tracing (traces, cost, latency) | ● | ● |
+| Prompt management (structured / versioned prompts) | ○ | ● (structured plan) |
+| Evaluation (judge answer quality) | ○ | ○ |
+| Guardrails (PII redaction, scope, safety) | ○ | ○ |
+| Skill registry (reusable skills / functions) | ○ | ○ |
 
-Start from the challenge's `brief.md` and build the use case. Stuck? Escalate one level at a time:
-
-```
-brief.md  →  ask CoCo + Snowflake docs  →  hints/level-1  →  level-2  →  level-3
-```
-
-**CoCo (Cortex Code)** is your fastest way to find things — ask it "how do I query a Cortex Search
-service?" before reaching for a hint. `run_all.sql` / the notebook is the working reference if you
-want to peek.
+● = a natural part of the use case  ○ = available as a stretch
 
 ## Good to know
 
@@ -55,12 +81,3 @@ want to peek.
 - **When you're done:** `DROP DATABASE IF EXISTS HACKATHON_BOX;` and `DROP WAREHOUSE IF EXISTS HACKATHON_WH;` (or your own `hb_db`).
 - **No API keys needed;** sample data is synthetic, shaped to mirror ANWB's real datasets. It's a
   sandbox — build and break things.
-
-## Repository layout
-
-```
-preflight_check.sql        Optional read-only account readiness check (run as ACCOUNTADMIN).
-challenges/
-  01-reisnogwijzer/        brief.md · run_all.sql · reisnogwijzer.ipynb · hints/ · data/ · tools/ · app.py
-  02-marketing-agent/      brief.md · run_all.sql · marketing_agent.ipynb · hints/ · data/ · tools/ · app.py
-```

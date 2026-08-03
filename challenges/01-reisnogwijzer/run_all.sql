@@ -1,16 +1,26 @@
 -- ============================================================================
--- CHALLENGE 1 - ReisNogWijzer  |  RUN-IT-ALL (SQL track)
+-- Challenge 1 - ReisNogWijzer
 -- ----------------------------------------------------------------------------
--- One self-contained file. Provisions everything this challenge needs, then
--- walks the build in SQL. Run it either way:
---   * Snowsight : open a SQL worksheet, paste this file, click "Run All".
---   * CLI       : snow sql -c <connection> -f run_all.sql
--- Idempotent: safe to re-run. Creates nothing outside the database below.
--- Independent: does NOT depend on Challenge 2.
+-- WHAT YOU'RE BUILDING: an AI travel assistant that answers member trip
+-- questions by combining a travel/camping knowledge base (Cortex Search / RAG)
+-- with tools for vehicle, weather and country-advisory facts.
 --
--- Data is synthetic, regenerated to mirror the STRUCTURE and FACTS of ANWB's
--- three real datasets (Camping Navigator, ANWB Website, Wikivoyage NL) so it
--- reads authentically. No file uploads required.
+-- SUCCESS CRITERIA (ANWB): functional RAG search; at least two external tools
+-- connected; the agent answers travel questions; demonstrable value over a
+-- plain chatbot.
+--
+-- HOW TO RUN - two ways, same result:
+--   SQL      : paste this file into a Snowsight worksheet and click Run All
+--              (or run: snow sql -c <connection> -f run_all.sql).
+--   Notebook : import reisnogwijzer.ipynb into Snowsight and Run All.
+-- After Run All, follow the SNOWSIGHT STEPS at the bottom to build the agent
+-- (and, optionally, the chat app).
+--
+-- Self-contained and idempotent (safe to re-run); independent of Challenge 2.
+-- Data is synthetic, shaped to mirror ANWB's three real sources (Camping
+-- Navigator, ANWB Website, Wikivoyage NL); no uploads needed. The mock tools
+-- are created below with zero setup; tools/real_tools.sql is an optional
+-- stretch that swaps in live RDW + open-meteo APIs.
 -- ============================================================================
 
 -- ============================================================================
@@ -451,9 +461,8 @@ $$;
 
 
 -- ============================================================================
--- BUILD  --  the ReisNogWijzer flow, in SQL. This is the reference path; try
--- the notebook (reisnogwijzer.ipynb) if you'd rather build it yourself. Each block
--- answers one of the sample questions in brief.md.
+-- BUILD  --  the ReisNogWijzer flow in SQL. Run these blocks top to bottom;
+-- each answers one sample question and shows the expected result.
 -- ============================================================================
 
 -- --- Q1: "Can I drive my diesel camper (plate XD-429-P) into Munich?" --------
@@ -500,24 +509,36 @@ SELECT AI_COMPLETE($hb_model,
  || travel_advisory_tool('Croatia')::STRING) AS advisory_summary;
 
 
--- ============================================================================
--- UI STEPS  --  the parts you do in Snowsight (SQL can't click for you)
--- ----------------------------------------------------------------------------
--- [ ] UI STEP 1 (optional) - Build this as a visual Cortex Agent:
---       Snowsight > AI & ML > Agents > Create agent. Add the TRAVEL_KB Cortex
---       Search service as a tool, and register mock_rdw_lookup / mock_weather /
---       travel_advisory_tool as custom tools. Set the agent's model to the
---       value of hb_model above (mistral-large2). Ask it the 3 questions.
--- [ ] UI STEP 2 (optional) - Ship a chat UI:
---       Snowsight > Projects > Streamlit > + Streamlit App (warehouse = your
---       hb_wh, database = your hb_db, schema = TRAVEL). Paste app.py from this
---       folder. Run it.
--- [ ] UI STEP 3 (optional) - See what the agent did:
---       Snowsight > AI & ML > Agents > (your agent) > Monitoring, to inspect
---       traces, tool calls, latency and tokens (AI Observability).
--- ============================================================================
-
 -- Final readiness line
 SELECT 'ReisNogWijzer ready in ' || $hb_db || '.TRAVEL  |  model=' || $hb_model
     || '  |  search=TRAVEL_KB  |  tools: mock_rdw_lookup, mock_weather, travel_advisory_tool, mock_currency'
     AS status;
+
+-- ============================================================================
+-- SNOWSIGHT STEPS  --  the parts you do in the Snowsight UI (clicks, not SQL).
+-- Do these after Run All above succeeds.
+-- ----------------------------------------------------------------------------
+-- STEP A - Build the ReisNogWijzer agent
+--   1. Left nav > AI & ML > Agents > "+ Agent" (Create agent).
+--   2. Schema HACKATHON_BOX.TRAVEL; name it REISNOGWIJZER; Create.
+--   3. Open the agent > Tools:
+--        - Add > Cortex Search  : HACKATHON_BOX.TRAVEL.TRAVEL_KB   (travel KB / RAG)
+--        - Add > Custom tool (function), schema TRAVEL:
+--            MOCK_RDW_LOOKUP(VARCHAR)       - vehicle info from a licence plate
+--            MOCK_WEATHER(VARCHAR)          - travel weather
+--            TRAVEL_ADVISORY_TOOL(VARCHAR)  - country safety advisory
+--   4. Model = mistral-large2. Instructions: "You are ReisNogWijzer, a warm ANWB
+--      travel expert. Answer in Dutch, grounded in the knowledge base and tools."
+--   5. Save, open the chat, and ask the three questions:
+--        - "Mag ik met mijn dieselcamper (XD-429-P) Munchen in?"   -> expect "Nee"
+--        - "Plan een 2-weken kampeertrip door Oostenrijk en Italie."
+--        - "Wat is het reisadvies voor Kroatie?"
+--      You meet the criteria when RAG + at least two tools are actually called.
+--
+-- STEP B (optional) - Ship the chat app
+--   Projects > Streamlit > "+ Streamlit App"; warehouse HACKATHON_WH, database
+--   HACKATHON_BOX, schema TRAVEL. Paste app.py from this folder and Run.
+--
+-- STEP C (optional) - Inspect what the agent did (AI Observability)
+--   AI & ML > Agents > REISNOGWIJZER > Monitoring: traces, tool calls, latency, tokens.
+-- ============================================================================
