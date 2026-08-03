@@ -175,6 +175,27 @@ BEGIN
     r := OBJECT_INSERT(r,'11 Observability / AI_OBSERVABILITY_EVENTS (traces)','PASS',TRUE);
   EXCEPTION WHEN OTHER THEN r := OBJECT_INSERT(r,'11 Observability / AI_OBSERVABILITY_EVENTS (traces)','FAIL: '||LEFT(:SQLERRM,60),TRUE); END;
 
+  ---------------------------------------------------------------------------
+  -- 12  Cortex Code (CoCo) - OPTIONAL AI copilot path only
+  ---------------------------------------------------------------------------
+  -- CoCo needs the COPILOT_USER + a CORTEX role, and (for its Claude/GPT models)
+  -- a broad cross-region setting. Skip this section if you build via SQL/Notebook.
+  BEGIN
+    EXECUTE IMMEDIATE 'SHOW DATABASE ROLES IN DATABASE SNOWFLAKE';
+    LET qid STRING := LAST_QUERY_ID();
+    LET has_copilot INT := (SELECT COUNT(*) FROM TABLE(RESULT_SCAN(:qid)) WHERE "name" = 'COPILOT_USER');
+    LET has_cortex  INT := (SELECT COUNT(*) FROM TABLE(RESULT_SCAN(:qid)) WHERE "name" IN ('CORTEX_USER','CORTEX_AGENT_USER'));
+    r := OBJECT_INSERT(r,'12 CoCo / roles (COPILOT_USER + CORTEX_USER or CORTEX_AGENT_USER)',
+         IFF(:has_copilot > 0 AND :has_cortex > 0,'PASS (present - grant to your role to use CoCo)','FAIL: missing required database role(s)'),TRUE);
+  EXCEPTION WHEN OTHER THEN r := OBJECT_INSERT(r,'12 CoCo / roles','FAIL: '||LEFT(:SQLERRM,60),TRUE); END;
+  BEGIN
+    EXECUTE IMMEDIATE 'SHOW PARAMETERS LIKE ''CORTEX_ENABLED_CROSS_REGION'' IN ACCOUNT';
+    LET xr2 STRING := (SELECT "value" FROM TABLE(RESULT_SCAN(LAST_QUERY_ID())));
+    r := OBJECT_INSERT(r,'12 CoCo / cross-region for Claude/GPT models',
+         IFF(:xr2 ILIKE '%GLOBAL%' OR :xr2 ILIKE '%ANY_REGION%','PASS ('||:xr2||')',
+             'N/A for CoCo ('||:xr2||') - CoCo needs AWS_GLOBAL/AZURE_GLOBAL/ANY_REGION; under EU-only, use the SQL/Notebook path'),TRUE);
+  EXCEPTION WHEN OTHER THEN r := OBJECT_INSERT(r,'12 CoCo / cross-region','FAIL: '||LEFT(:SQLERRM,60),TRUE); END;
+
   RETURN TO_JSON(r);
 END;
 $$;
@@ -225,5 +246,7 @@ $$;
 --   * SHOW-based checks showing 0 objects is FINE (nothing created yet); only
 --     an actual error is a real FAIL.
 --   * "Unknown function AI_JUDGE" is expected - LLM-as-judge uses AI_COMPLETE.
+--   * 12 CoCo is OPTIONAL (only for the Cortex Code copilot path). "N/A for CoCo"
+--     under EU-only cross-region is expected - the SQL/Notebook paths don't need it.
 -- Any FAIL prints a short reason; account-level fixes may need your ACCOUNTADMIN.
 -- ============================================================================
