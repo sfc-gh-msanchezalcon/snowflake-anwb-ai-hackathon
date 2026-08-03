@@ -7,7 +7,9 @@
 
 ```
 README.md                  This guide: how to run + what's being evaluated.
+AGENTS.md                  Project context for Cortex Code (CoCo) — auto-loaded in a Workspace.
 preflight_check.sql        Optional read-only account readiness check (run as ACCOUNTADMIN).
+.snowflake/cortex/skills/  Optional CoCo skills: /reisnogwijzer and /marketing-agent.
 challenges/
   01-reisnogwijzer/        reisnogwijzer.sql · reisnogwijzer.ipynb · app.py · tools/real_tools.sql
   02-marketing-agent/      marketing_agent.sql · marketing_agent.ipynb · app.py
@@ -35,6 +37,30 @@ notebook.
    — a step-by-step, click-by-click guide to build the Cortex Agent and, optionally, ship the
    Streamlit app and inspect AI Observability. Each file is fully self-guiding; you don't need any
    other document.
+
+### Option C (optional) — build with Cortex Code (CoCo)
+
+Prefer an AI copilot? You can build either challenge conversationally with **Cortex Code (CoCo)** in
+Snowsight. **This is optional.** If you can't or don't want to enable cross-region inference, use the
+SQL or Notebook option above — they run entirely on the EU-native `mistral-large2`, in region, and give
+the identical result.
+
+**Prerequisites**
+- Your role needs the `SNOWFLAKE.COPILOT_USER` database role plus `SNOWFLAKE.CORTEX_USER` (or
+  `CORTEX_AGENT_USER`). ACCOUNTADMIN already has these.
+- Cross-region inference must be enabled — CoCo itself runs on Claude / GPT models. If your account is
+  EU-only for data residency, enabling this sends CoCo's context to non-EU models; only do so if that's
+  acceptable, otherwise use Option A/B.
+
+**Steps**
+1. Open this repo as a Snowsight **Workspace** (`Projects > Workspaces` — from Git, or upload the folder).
+2. Open the **CoCo** panel (icon, lower-right). `AGENTS.md` at the repo root loads automatically as context.
+3. Type `/` and pick **`/reisnogwijzer`** or **`/marketing-agent`** — the skill runs and explains the
+   provisioning, verifies it, then walks you through building the Cortex Agent. (If the skills don't
+   appear, use *Upload Skill Folder(s)* on `.snowflake/cortex/skills/`.)
+
+Or just ask in your own words, e.g. *"Run the ReisNogWijzer challenge end to end, then walk me through
+building the agent"* or *"Explain what reisnogwijzer.sql does before we run it."*
 
 ## What ANWB is evaluating (and how each use case maps)
 
