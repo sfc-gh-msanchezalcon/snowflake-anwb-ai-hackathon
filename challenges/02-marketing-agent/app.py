@@ -5,7 +5,8 @@ from snowflake.snowpark.context import get_active_session
 
 # Marketing Agent — reference Streamlit app (Streamlit in Snowflake)
 session = get_active_session()
-session.sql("USE DATABASE ANWB_AI_HACKATHON").collect()
+# Use whatever database this app is deployed in, so it works under any DB name / account.
+DB = (session.get_current_database() or "ANWB_AI_HACKATHON").strip('"')
 
 st.set_page_config(page_title="ANWB Marketing Agent", page_icon="📣", layout="wide")
 st.title("📣 ANWB Marketing Agent")
@@ -20,7 +21,7 @@ def search_kb(query, limit=4):
     spec = json.dumps({"query": query, "columns": ["title", "content"], "limit": limit})
     row = session.sql(
         "SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(?, ?) AS r",
-        params=["ANWB_AI_HACKATHON.MARKETING.MARKETING_KB", spec],
+        params=[f"{DB}.MARKETING.MARKETING_KB", spec],
     ).collect()[0]
     return json.loads(row["R"]).get("results", [])
 
@@ -79,15 +80,20 @@ if st.button("Generate campaign", type="primary"):
     st.markdown("### Presentation")
     components.html(slides_to_html(plan.get("slides", [])), height=520, scrolling=True)
 
-    # Build a real .pptx and offer it for download
-    session.sql("CREATE STAGE IF NOT EXISTS MARKETING.DECKS").collect()
-    session.sql(
-        "CALL MARKETING.build_deck(PARSE_JSON(?), ?)",
-        params=[json.dumps(plan.get("slides", [])), "anwb_campaign.pptx"],
-    ).collect()
-    data = session.file.get_stream("@MARKETING.DECKS/anwb_campaign.pptx").read()
-    st.download_button("⬇️ Download .pptx", data=data, file_name="anwb_campaign.pptx",
-                       mime="application/vnd.openxmlformats-officedocument.presentationml.presentation")
+    # Optional: a real .pptx (needs the build_deck proc, which requires Anaconda / python-pptx).
+    # If that isn't enabled in this account, the HTML deck above is the result.
+    try:
+        session.sql("CREATE STAGE IF NOT EXISTS MARKETING.DECKS").collect()
+        session.sql(
+            "CALL MARKETING.build_deck(PARSE_JSON(?), ?)",
+            params=[json.dumps(plan.get("slides", [])), "anwb_campaign.pptx"],
+        ).collect()
+        data = session.file.get_stream("@MARKETING.DECKS/anwb_campaign.pptx").read()
+        st.download_button("Download .pptx", data=data, file_name="anwb_campaign.pptx",
+                           mime="application/vnd.openxmlformats-officedocument.presentationml.presentation")
+    except Exception:
+        st.info("Showing the HTML deck above. For a downloadable .pptx, enable Anaconda "
+                "(python-pptx) and run the build_deck step in marketing_agent.sql.")
 
     with st.expander("Full plan JSON"):
         st.json(plan)

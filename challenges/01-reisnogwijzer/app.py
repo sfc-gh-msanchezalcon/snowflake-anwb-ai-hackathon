@@ -4,7 +4,8 @@ from snowflake.snowpark.context import get_active_session
 
 # ReisNogWijzer — reference Streamlit chat app (Streamlit in Snowflake)
 session = get_active_session()
-session.sql("USE DATABASE ANWB_AI_HACKATHON").collect()
+# Use whatever database this app is deployed in, so it works under any DB name / account.
+DB = (session.get_current_database() or "ANWB_AI_HACKATHON").strip('"')
 
 st.set_page_config(page_title="ReisNogWijzer", page_icon="🚐", layout="centered")
 st.title("🚐 ReisNogWijzer")
@@ -15,7 +16,7 @@ def search_kb(query, columns, limit=3):
     spec = json.dumps({"query": query, "columns": columns, "limit": limit})
     row = session.sql(
         "SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(?, ?) AS r",
-        params=["ANWB_AI_HACKATHON.TRAVEL.TRAVEL_KB", spec],
+        params=[f"{DB}.TRAVEL.TRAVEL_KB", spec],
     ).collect()[0]
     return json.loads(row["R"]).get("results", [])
 
