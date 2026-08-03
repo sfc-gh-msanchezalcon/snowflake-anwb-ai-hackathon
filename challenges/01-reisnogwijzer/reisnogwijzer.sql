@@ -527,6 +527,7 @@ SELECT 'ReisNogWijzer ready in ' || $hb_db || '.TRAVEL  |  model=' || $hb_model
 --            MOCK_RDW_LOOKUP(VARCHAR)       - vehicle info from a licence plate
 --            MOCK_WEATHER(VARCHAR)          - travel weather
 --            TRAVEL_ADVISORY_TOOL(VARCHAR)  - country safety advisory
+--          (use the text after each dash as the tool's description in the agent UI)
 --   4. Model = mistral-large2. Instructions: "You are ReisNogWijzer, a warm ANWB
 --      travel expert. Answer in Dutch, grounded in the knowledge base and tools."
 --   5. Save, open the chat, and ask the three questions:
