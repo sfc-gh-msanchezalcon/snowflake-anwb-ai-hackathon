@@ -5,6 +5,17 @@
 -- egress. If your network policy blocks egress, skip this - reisnogwijzer.sql already
 -- created zero-setup MOCK tools that work offline.
 -- Run this AFTER reisnogwijzer.sql (it reuses the same database + schema).
+-- ----------------------------------------------------------------------------
+-- NOTE - real and mock tools return DIFFERENT data, so they are not fully 1:1:
+--   * Signatures match (same args, VARIANT out), so real_rdw_lookup / real_weather
+--     are drop-in swaps for the mock versions in the agent, app or SQL.
+--   * BUT the JSON fields differ. In particular, mock_rdw_lookup returns a
+--     'euronorm' field that Q1's Munich diesel-ban logic relies on; the live RDW
+--     response here does NOT include euronorm (only merk/model/brandstof/bouwjaar/
+--     voertuigsoort/massa_ledig_kg). So the real RDW tool won't drive the
+--     emission-zone reasoning the same way - a production build would derive the
+--     EURO norm from year + fuel. real_weather has no such gap.
+--   * There is no real advisory or currency tool - keep those on mock.
 -- ============================================================================
 SET db = 'ANWB_AI_HACKATHON';   -- match the value you used in reisnogwijzer.sql
 SET wh = 'ANWB_AI_HACKATHON_WH';
