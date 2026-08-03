@@ -35,7 +35,7 @@ Both are idempotent and provision everything themselves. There is no separate se
 # SQL
 snow sql -c <your_connection> -f challenges/01-reisnogwijzer/run_all.sql
 # Notebook
-snow notebook create ... # or import via git; see facilitator/runbook.md
+snow notebook create ...        # or import the .ipynb directly in Snowsight
 ```
 
 ## 4. Try first, escalate on your terms
@@ -70,7 +70,7 @@ challenge uses its own schema, so runs don't collide.
 
 Run [`preflight_check.sql`](preflight_check.sql) once in the account (as `ACCOUNTADMIN`) to
 confirm the required features are enabled. It's read-only. Anything that fails points to a
-one-line fix - see [`facilitator/runbook.md`](facilitator/runbook.md).
+one-line fix - ask a facilitator if you're unsure.
 
 ## Ground rules
 

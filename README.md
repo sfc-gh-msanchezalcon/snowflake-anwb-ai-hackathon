@@ -13,7 +13,6 @@ flowchart TB
     Root["snowflake-anwb-ai-hackathon (repo)"]
     Root --> SH["START_HERE.md (front door)"]
     Root --> PF["preflight_check.sql (optional, EU-aware readiness)"]
-    Root --> FR["facilitator/runbook.md"]
     Root --> C1
     Root --> C2
 
