@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/ANWB-logo.png" alt="ANWB" height="72">
+  <img src="assets/anwb-seeklogo.png" alt="ANWB" height="72">
   &nbsp;&nbsp;&nbsp;<b>&times;</b>&nbsp;&nbsp;&nbsp;
   <img src="assets/snowflake-logo.svg" alt="Snowflake" height="40">
 </p>
