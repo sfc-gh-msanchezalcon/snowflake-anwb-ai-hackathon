@@ -9,6 +9,7 @@
 README.md                  This guide: how to run + what's being evaluated.
 AGENTS.md                  Project context for Cortex Code (CoCo) — auto-loaded in a Workspace.
 preflight_check.sql        Optional read-only account readiness check (run as ACCOUNTADMIN).
+capability_tour.sql        Optional runnable tour of Cortex capabilities beyond the two use cases.
 .snowflake/cortex/skills/  Optional CoCo skills: /reisnogwijzer and /marketing-agent.
 challenges/
   01-reisnogwijzer/        reisnogwijzer.sql · reisnogwijzer.ipynb · app.py · tools/real_tools.sql
@@ -64,27 +65,28 @@ building the agent"* or *"Explain what reisnogwijzer.sql does before we run it."
 
 ## What ANWB is evaluating (and how each use case maps)
 
-ANWB's "Capabilities to test for GenAI" list groups into **11 capability areas**: **Overall, LLM
-Gateway, Evaluation, Guardrails, Tracing, Prompt management, Agent registry, Skill registry, Tool
-registry, RAG, and Agent runtime** (Governance / IAM / RBAC sits inside *Overall*; the no-code
-agent builder inside *Agent runtime*). Building either use case exercises the areas below — both run
-entirely on Snowflake Cortex, the same platform being assessed.
+ANWB's "Capabilities to test for GenAI" list groups into **11 capability areas** (Governance / IAM /
+RBAC sits inside *Overall*; the no-code agent builder inside *Agent runtime*). The two use cases build
+the core areas; the optional [`capability_tour.sql`](capability_tour.sql) adds hands-on snippets for
+the rest — so **together they give every area a touchpoint**. Everything runs on Snowflake Cortex, the
+platform being assessed. (Separately, [`preflight_check.sql`](preflight_check.sql) confirms each is
+enabled in your account.)
 
-| Capability area | ReisNogWijzer | Marketing Agent |
-|---|:---:|:---:|
-| Overall (platform, governance/RBAC, ops) | ● | ● |
-| LLM Gateway (model calls, compare models) | ● | ● |
-| RAG (Cortex Search over a knowledge base) | ● | ● |
-| Agent runtime (multi-step orchestration) | ● | ● |
-| Tool registry (custom tools / functions) | ● (vehicle, weather, advisory) | ● (deck generator) |
-| Agent registry (build as a Cortex Agent) | ● | ● |
-| Tracing (traces, cost, latency) | ● | ● |
-| Prompt management (structured / versioned prompts) | ○ | ● (structured plan) |
-| Evaluation (judge answer quality) | ○ | ○ |
-| Guardrails (PII redaction, scope, safety) | ○ | ○ |
-| Skill registry (reusable skills / functions) | ○ | ○ |
+| Capability area | Snowflake capability | ReisNogWijzer | Marketing Agent | Capability tour |
+|---|---|:---:|:---:|:---:|
+| Overall (platform, governance/RBAC, ops) | RBAC, ACCOUNT_USAGE | ● | ● | |
+| LLM Gateway (model calls, compare models) | AI_COMPLETE, model choice | ● | ● | |
+| RAG (knowledge base search) | Cortex Search; AI_EMBED + cosine similarity | ● | ● | ✓ embed + similarity |
+| Agent runtime (multi-step orchestration) | Cortex Agents | ● | ● | |
+| Tool registry (custom tools / functions) | SQL UDFs wired to the agent | ● (vehicle, weather, advisory) | ● (deck generator) | |
+| Agent registry (build as a Cortex Agent) | Cortex Agent object | ● | ● | |
+| Tracing (traces, cost, latency) | AI Observability; ACCOUNT_USAGE | ● | ● | ✓ usage/cost query |
+| Prompt management (structured / versioned prompts) | structured prompt; Git for versioning | ○ | ● (structured plan) | |
+| Evaluation (judge answer quality) | LLM-as-judge via AI_COMPLETE | ○ | ○ | ✓ |
+| Guardrails (PII redaction, scope, safety) | Cortex Guard, AI_REDACT | ○ | ○ | ✓ (cross-region) |
+| Skill registry (reusable AI functions) | AISQL: AI_CLASSIFY/FILTER/SENTIMENT/TRANSLATE/EXTRACT/SUMMARIZE | ○ | ○ | ✓ |
 
-● = a natural part of the use case  ○ = available as a stretch
+● = built into the use case  ·  ○ = available as a stretch  ·  ✓ = hands-on snippet in `capability_tour.sql`
 
 ## Good to know
 
