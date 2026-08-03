@@ -2,11 +2,11 @@
 -- OPTIONAL: REAL external tools - live API calls via an External Access Integration.
 -- No API keys needed (RDW open data + open-meteo are public).
 -- Requires a role with CREATE INTEGRATION (typically ACCOUNTADMIN) AND outbound
--- egress. If your network policy blocks egress, skip this - run_all.sql already
+-- egress. If your network policy blocks egress, skip this - reisnogwijzer.sql already
 -- created zero-setup MOCK tools that work offline.
--- Run this AFTER run_all.sql (it reuses the same database + schema).
+-- Run this AFTER reisnogwijzer.sql (it reuses the same database + schema).
 -- ============================================================================
-SET hb_db = 'HACKATHON_BOX';   -- match the value you used in run_all.sql
+SET hb_db = 'HACKATHON_BOX';   -- match the value you used in reisnogwijzer.sql
 SET hb_wh = 'HACKATHON_WH';
 USE ROLE ACCOUNTADMIN;
 USE DATABASE IDENTIFIER($hb_db);

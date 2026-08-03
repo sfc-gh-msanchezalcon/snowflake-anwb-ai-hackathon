@@ -9,7 +9,7 @@
 --
 -- HOW TO RUN - two ways, same result:
 --   SQL      : paste this file into a Snowsight worksheet and click Run All
---              (or run: snow sql -c <connection> -f run_all.sql).
+--              (or run: snow sql -c <connection> -f marketing_agent.sql).
 --   Notebook : import marketing_agent.ipynb into Snowsight and Run All.
 -- After Run All, follow the SNOWSIGHT STEPS at the bottom to build the agent
 -- (and, optionally, the app).

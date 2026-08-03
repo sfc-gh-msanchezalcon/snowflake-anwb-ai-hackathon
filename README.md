@@ -9,8 +9,8 @@
 README.md                  This guide: how to run + what's being evaluated.
 preflight_check.sql        Optional read-only account readiness check (run as ACCOUNTADMIN).
 challenges/
-  01-reisnogwijzer/        run_all.sql · reisnogwijzer.ipynb · app.py · tools/real_tools.sql
-  02-marketing-agent/      run_all.sql · marketing_agent.ipynb · app.py
+  01-reisnogwijzer/        reisnogwijzer.sql · reisnogwijzer.ipynb · app.py · tools/real_tools.sql
+  02-marketing-agent/      marketing_agent.sql · marketing_agent.ipynb · app.py
 ```
 
 Each challenge is independent and self-contained. General hackathon info lives here in the README;
@@ -28,10 +28,10 @@ notebook.
 
 1. **Pick a use case** and open its folder.
 2. **Run it one of two ways — same result, pick whichever you prefer:**
-   - **SQL:** paste `run_all.sql` into a Snowsight worksheet → **Run All** (or `snow sql -c <conn> -f challenges/01-reisnogwijzer/run_all.sql`).
-   - **Notebook:** import `<usecase>.ipynb` into Snowsight → pick a warehouse + database → **Run All**.
+   - **SQL:** paste the challenge's `<usecase>.sql` (e.g. `reisnogwijzer.sql`) into a Snowsight worksheet → **Run All** (or `snow sql -c <conn> -f challenges/01-reisnogwijzer/reisnogwijzer.sql`).
+   - **Notebook:** import the challenge's `<usecase>.ipynb` into Snowsight → pick a warehouse + database → **Run All**.
    Both provision everything (idempotent — no separate setup step) and build the use case.
-3. **Then follow the "SNOWSIGHT STEPS"** at the bottom of `run_all.sql` (or the last notebook cell)
+3. **Then follow the "SNOWSIGHT STEPS"** at the bottom of the `.sql` file (or the last notebook cell)
    — a step-by-step, click-by-click guide to build the Cortex Agent and, optionally, ship the
    Streamlit app and inspect AI Observability. Each file is fully self-guiding; you don't need any
    other document.
@@ -63,7 +63,7 @@ entirely on Snowflake Cortex, the same platform being assessed.
 ## Good to know
 
 - **Config in one place:** model / warehouse / database are set in a single **CONFIG block** at the
-  top of `run_all.sql` (and the first notebook cell). Default model `mistral-large2` (EU-native);
+  top of the `.sql` file (and the first notebook cell). Default model `mistral-large2` (EU-native);
   alternative `llama3.3-70b`. *US-only models (Claude, OpenAI GPT, llama4-maverick) aren't reachable
   under EU-only cross-region inference.*
 - **Sharing one account?** Set `hb_db` to your own name (e.g. `HACKATHON_BOX_MSA`) in the CONFIG
