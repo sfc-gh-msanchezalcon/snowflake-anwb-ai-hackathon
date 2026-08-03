@@ -15,9 +15,6 @@ finished reference - is in this repo. Pick a challenge, pick how you want to wor
 Each challenge folder is self-contained (brief, data, tools, hints, and the finished use case).
 The two challenges are independent - you never need the other one.
 
-These are ANWB's pilot use cases; see [EVALUATION.md](EVALUATION.md) for how each maps to the
-capability areas ANWB is evaluating.
-
 ## 2. Pick how you want to run it
 
 Every challenge ships the **same use case two ways** - use whichever you prefer:
