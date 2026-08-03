@@ -206,9 +206,8 @@ SELECT AI_COMPLETE($model,
 
 -- ============================================================================
 -- OPTIONAL STRETCH  --  real .pptx via python-pptx.
--- Requires the Anaconda packages to be enabled (Snowsight > Admin >
--- Billing & Terms > accept Anaconda). Guarded so run-all does NOT fail if
--- python-pptx is unavailable - you simply keep the HTML deck above.
+-- Needs Anaconda enabled (Snowsight > Admin > Billing & Terms > accept Anaconda).
+-- If it isn't, this step is skipped and you keep the HTML deck above.
 -- ============================================================================
 CREATE STAGE IF NOT EXISTS DECKS;
 
