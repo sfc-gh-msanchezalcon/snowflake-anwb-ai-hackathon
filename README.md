@@ -45,6 +45,9 @@ want to peek.
 - **Your account needs:** Cortex AI enabled (EU-only cross-region is fine), Enterprise edition, and
   a role that can create a database / warehouse / schema. The optional live tools / `.pptx` deck
   need `CREATE INTEGRATION` / Anaconda — both degrade gracefully if not available.
+- **PowerPoint (`.pptx`) in Challenge 2:** the HTML deck is the default and works with no setup. A
+  real `.pptx` needs the `python-pptx` package — an admin accepts the Anaconda terms once
+  (Snowsight → Admin → Billing & Terms). Without it, the deck step falls back to HTML automatically.
 - **Preflight (optional):** run [`preflight_check.sql`](preflight_check.sql) once as `ACCOUNTADMIN`.
   It's read-only; any `FAIL` prints a one-line fix (admin-level items go to your account admin).
 - **Your demo:** problem statement → architecture → Snowflake capabilities used → live demo →

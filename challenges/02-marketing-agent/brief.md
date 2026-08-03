@@ -35,6 +35,12 @@ messaging, assembles a full campaign plan, and **auto-generates a presentation d
 | Presentation generator | Turn the plan into a slide deck — see hints (both `.pptx` via `python-pptx` and an HTML deck work) |
 | Web search / market context | Provided as the `MARKETING_KB` market doc (mock); real web search is an optional stretch |
 
+> **Note on the deck output.** The **HTML deck works everywhere with no setup** — that's the default,
+> and it fully satisfies the "presentation output" criterion. A real **`.pptx`** needs the
+> `python-pptx` package, which requires an admin to accept the Anaconda terms once
+> (Snowsight → Admin → Billing & Terms). If that's not enabled, the `build_deck` step **falls back to
+> HTML automatically** — nothing breaks, so start with HTML and treat `.pptx` as a stretch.
+
 ## Sample prompts your agent should handle
 
 1. **"Create a campaign for ANWB Wegenwacht Europa Service aimed at active seniors."**
