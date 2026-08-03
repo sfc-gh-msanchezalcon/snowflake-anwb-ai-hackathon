@@ -76,17 +76,17 @@ enabled in your account.)
 |---|---|:---:|:---:|:---:|
 | Overall (platform, governance/RBAC, ops) | RBAC, ACCOUNT_USAGE | ● | ● | |
 | LLM Gateway (model calls, compare models) | AI_COMPLETE, model choice | ● | ● | |
-| RAG (knowledge base search) | Cortex Search; AI_EMBED + cosine similarity | ● | ● | ✓ embed + similarity |
+| RAG (knowledge base search) | Cortex Search; AI_EMBED + cosine similarity | ● | ● | Yes - embed + similarity |
 | Agent runtime (multi-step orchestration) | Cortex Agents | ● | ● | |
 | Tool registry (custom tools / functions) | SQL UDFs wired to the agent | ● (vehicle, weather, advisory) | ● (deck generator) | |
 | Agent registry (build as a Cortex Agent) | Cortex Agent object | ● | ● | |
-| Tracing (traces, cost, latency) | AI Observability; ACCOUNT_USAGE | ● | ● | ✓ usage/cost query |
+| Tracing (traces, cost, latency) | AI Observability; ACCOUNT_USAGE | ● | ● | Yes - usage/cost query |
 | Prompt management (structured / versioned prompts) | structured prompt; Git for versioning | ○ | ● (structured plan) | |
-| Evaluation (judge answer quality) | LLM-as-judge via AI_COMPLETE | ○ | ○ | ✓ |
-| Guardrails (PII redaction, scope, safety) | Cortex Guard, AI_REDACT | ○ | ○ | ✓ (cross-region) |
-| Skill registry (reusable AI functions) | AISQL: AI_CLASSIFY/FILTER/SENTIMENT/TRANSLATE/EXTRACT/SUMMARIZE | ○ | ○ | ✓ |
+| Evaluation (judge answer quality) | LLM-as-judge via AI_COMPLETE | ○ | ○ | Yes |
+| Guardrails (PII redaction, scope, safety) | Cortex Guard, AI_REDACT | ○ | ○ | Yes (cross-region) |
+| Skill registry (reusable AI functions) | AISQL: AI_CLASSIFY/FILTER/SENTIMENT/TRANSLATE/EXTRACT/SUMMARIZE | ○ | ○ | Yes |
 
-● = built into the use case  ·  ○ = available as a stretch  ·  ✓ = hands-on snippet in `capability_tour.sql`
+● = built into the use case  ·  ○ = available as a stretch  ·  Yes = hands-on snippet in `capability_tour.sql`
 
 ## Good to know
 
