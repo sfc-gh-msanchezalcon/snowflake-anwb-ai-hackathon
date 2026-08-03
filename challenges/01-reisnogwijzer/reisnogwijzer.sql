@@ -367,8 +367,6 @@ SELECT 'Travel data loaded: '
 -- SEARCH  --  hybrid (vector + keyword) Cortex Search over the knowledge base
 -- Indexing takes ~1 minute. Verify with SHOW CORTEX SEARCH SERVICES.
 -- ============================================================================
--- (Built via EXECUTE IMMEDIATE because the WAREHOUSE clause here does not accept
---  IDENTIFIER($wh); this keeps the warehouse driven by the CONFIG variable.)
 EXECUTE IMMEDIATE $$
 DECLARE stmt STRING;
 BEGIN
@@ -385,7 +383,6 @@ $$;
 -- ============================================================================
 -- TOOLS  --  mock external tools (zero setup, always work, no network needed).
 -- For live APIs (RDW open data + open-meteo) see tools/real_tools.sql (optional).
--- Defined in the TRAVEL schema so they resolve regardless of the DB name above.
 -- ============================================================================
 
 -- Vehicle registration lookup (like the RDW open-data API): make, model, fuel,

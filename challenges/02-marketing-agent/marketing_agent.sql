@@ -151,7 +151,6 @@ SELECT 'Marketing data loaded: '
 
 -- ============================================================================
 -- SEARCH  --  hybrid Cortex Search over the brand/marketing knowledge base.
--- (EXECUTE IMMEDIATE so the WAREHOUSE clause can use the CONFIG variable.)
 -- ============================================================================
 EXECUTE IMMEDIATE $$
 BEGIN
