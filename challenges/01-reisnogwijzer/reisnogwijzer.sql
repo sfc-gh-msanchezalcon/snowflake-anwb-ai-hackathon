@@ -462,20 +462,23 @@ $$;
 
 -- ============================================================================
 -- BUILD  --  the ReisNogWijzer flow in SQL. Run these blocks top to bottom;
--- each answers one sample question and shows the expected result.
+-- each answers one sample question and shows the expected result. New to
+-- Snowflake? Each step notes the Cortex feature it uses and why.
 -- ============================================================================
 
--- --- Q1: "Can I drive my diesel camper (plate XD-429-P) into Munich?" --------
--- Step 1: look up the vehicle (tool call).
+-- Q1 - "Can I drive my diesel camper (XD-429-P) into Munich?"
+-- Step 1 - Look up the vehicle. mock_rdw_lookup is a SQL function (our stand-in for
+-- the RDW open-data API) that the agent calls like a tool; it returns fuel + EURO norm.
 SELECT mock_rdw_lookup('XD-429-P') AS vehicle;
 
--- Step 2: pull Munich's emission-zone facts (grounding data).
+-- Step 2 - Get Munich's rules with plain SQL over the EMISSION_ZONES table.
+-- These structured facts are what the model reasons over (this is the grounding).
 SELECT city, zone_name, sticker_required, min_euro_diesel, diesel_ban_min_euro, ev_exempt, caravan_note
 FROM EMISSION_ZONES WHERE LOWER(city) = 'munich';
 
--- Step 3: let the model reason over vehicle + zone facts and answer in Dutch.
--- The field semantics are spelled out so the model applies the diesel DRIVING
--- BAN (diesel_ban_min_euro), not just the green-sticker threshold.
+-- Step 3 - Ask the model. AI_COMPLETE runs an LLM right inside SQL; we hand it the
+-- vehicle + zone facts so the answer is grounded, not guessed. The prompt spells out
+-- the diesel DRIVING BAN (diesel_ban_min_euro) vs the green-sticker rule so it reasons right.
 SELECT AI_COMPLETE($hb_model,
     'Je bent ReisNogWijzer, de reisassistent van de ANWB. Antwoord in het Nederlands, kort en concreet, begin met Ja of Nee. '
  || 'Voertuig: ' || mock_rdw_lookup('XD-429-P')::STRING
@@ -488,9 +491,10 @@ SELECT AI_COMPLETE($hb_model,
  || '  Vraag: Mag ik met deze dieselcamper (let op de euronorm) de milieuzone van Munchen in? Leg uit waarom wel of niet.'
 ) AS antwoord_munchen;
 
--- --- Q2: "Plan a 2-week camping trip through Austria and Italy." -------------
--- RAG: hybrid-search the knowledge base for grounding, then synthesize.
--- (SEARCH_PREVIEW returns JSON; we pass the top hits to the model.)
+-- Q2 - "Plan a 2-week camping trip through Austria and Italy."
+-- This is RAG in one statement: SEARCH_PREVIEW queries the Cortex Search service
+-- (hybrid vector + keyword) for the most relevant docs, and AI_COMPLETE writes the
+-- plan grounded in them. SEARCH_PREVIEW returns JSON; we pass the top hits to the model.
 SELECT AI_COMPLETE($hb_model,
     'Je bent ReisNogWijzer. Gebruik onderstaande kennisbank-fragmenten om een beknopt 2-weken kampeerplan '
  || 'door Oostenrijk en Italie te maken (route, 3-4 campings, let op vignetten/tol). Antwoord in het Nederlands.'
@@ -502,14 +506,16 @@ SELECT AI_COMPLETE($hb_model,
     )
 ) AS reisplan;
 
--- --- Q3: "What are the current travel advisories for Croatia?" ---------------
+-- Q3 - "What are the current travel advisories for Croatia?"
+-- Step 1 - Call the advisory tool (a SQL function) to fetch the raw fact.
 SELECT travel_advisory_tool('Croatia') AS advisory_raw;
+-- Step 2 - Summarise it in Dutch, in the ANWB voice, with AI_COMPLETE.
 SELECT AI_COMPLETE($hb_model,
     'Vat dit reisadvies bondig samen voor een ANWB-lid, in het Nederlands, met de kleurcode: '
  || travel_advisory_tool('Croatia')::STRING) AS advisory_summary;
 
 
--- Final readiness line
+-- Done - a quick readiness summary (database, model, search service, tools).
 SELECT 'ReisNogWijzer ready in ' || $hb_db || '.TRAVEL  |  model=' || $hb_model
     || '  |  search=TRAVEL_KB  |  tools: mock_rdw_lookup, mock_weather, travel_advisory_tool, mock_currency'
     AS status;

@@ -166,16 +166,19 @@ $$;
 
 -- ============================================================================
 -- BUILD  --  the multi-step Marketing Agent in SQL. Run these blocks top to
--- bottom. Scenario: a campaign for one product + audience segment.
+-- bottom. Scenario: a campaign for one product + audience segment. New to
+-- Snowflake? Each step notes the Cortex feature it uses and why.
 -- ============================================================================
 
--- --- Step 1: pick a product + segment (the agent's inputs) -------------------
+-- Step 1 - Pick the inputs: one product + one audience segment, with plain SQL
+-- over the PRODUCTS and AUDIENCE_SEGMENTS tables. This is what the agent plans for.
 SELECT p.name AS product, p.description, s.name AS segment, s.key_motivator
 FROM PRODUCTS p, AUDIENCE_SEGMENTS s
 WHERE p.product_id = 'P01' AND s.segment_id = 'S01';
 
--- --- Step 2: campaign PLAN (RAG brand voice + playbook -> structured JSON) ----
--- Grounds on the marketing KB so tone + slide structure match ANWB guidelines.
+-- Step 2 - Build the campaign plan. RAG again: SEARCH_PREVIEW pulls brand-voice +
+-- deck-structure docs from the MARKETING_KB Cortex Search service, and AI_COMPLETE
+-- (an LLM in SQL) returns a structured JSON plan grounded in ANWB's guidelines.
 SELECT AI_COMPLETE($hb_model,
     'Je bent de Marketing Agent van de ANWB. Maak een campagneplan als JSON met velden: '
  || 'campaign_name, big_idea, audience, key_messages (array), channels (array), kpis (array), '
@@ -191,8 +194,8 @@ SELECT AI_COMPLETE($hb_model,
     )
 ) AS campaign_plan_json;
 
--- --- Step 3: DECK (default = HTML; no extra packages, always works) ----------
--- Turn the campaign into a self-contained HTML slide deck you can open or embed.
+-- Step 3 - Generate the deck. AI_COMPLETE turns the plan into a self-contained HTML
+-- slide deck (works everywhere, no extra packages). A real .pptx is the optional stretch below.
 SELECT AI_COMPLETE($hb_model,
     'Maak een nette, op zichzelf staande HTML-presentatie voor een ANWB-campagne: een <section> per slide, '
  || 'inline CSS, ANWB-geel #FFCC00 als accent. Volg de deckstructuur (titel, opportunity, doelgroep, strategie, '
@@ -241,7 +244,7 @@ END;
 $$;
 
 
--- Final readiness line
+-- Done - a quick readiness summary (database, model, search service, deck options).
 SELECT 'Marketing Agent ready in ' || $hb_db || '.MARKETING  |  model=' || $hb_model
     || '  |  search=MARKETING_KB  |  deck: HTML (default) + optional .pptx via build_deck'
     AS status;
