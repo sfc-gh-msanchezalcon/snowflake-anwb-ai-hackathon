@@ -1,90 +1,63 @@
 # ANWB AI Hackathon
 
-A self-service kit for building a working GenAI app on Snowflake in a day. Two independent
-challenges; each is a self-contained folder you can run **two ways** — a single `run_all.sql`
-(SQL) or a notebook — with everything (data, tools, hints, the finished use case) in one place.
+> Build a working GenAI app on Snowflake in a day. Everything you need — data, tools, hints, and a
+> finished reference — is in this repo. Pick a challenge, pick how you want to work, and go.
 
-New here? Go to **[START_HERE.md](START_HERE.md)**.
+## Quickstart
 
-## Architecture
+### 1. Pick a challenge
 
-```mermaid
-flowchart TB
-    Root["snowflake-anwb-ai-hackathon (repo)"]
-    Root --> SH["START_HERE.md (front door)"]
-    Root --> PF["preflight_check.sql (optional, EU-aware readiness)"]
-    Root --> C1
-    Root --> C2
-
-    subgraph C1 [challenges/01-reisnogwijzer]
-      direction TB
-      C1a["brief.md - what to build"]
-      C1b["run_all.sql - SQL way"]
-      C1c["reisnogwijzer.ipynb - notebook way"]
-      C1d["hints/ level-1 level-2 level-3"]
-      C1e["data/ · tools/ · app.py"]
-    end
-
-    subgraph C2 [challenges/02-marketing-agent]
-      direction TB
-      C2a["brief.md - what to build"]
-      C2b["run_all.sql - SQL way"]
-      C2c["marketing_agent.ipynb - notebook way"]
-      C2d["hints/ level-1 level-2 level-3"]
-      C2e["data/ · tools/ · app.py"]
-    end
-```
-
-Each challenge is **independent** (no cross-dependency) and **self-contained**: both the SQL and
-the notebook provision everything the use case needs and then build it. There is no separate
-setup step and no shared central provisioning.
-
-## How one challenge runs
-
-```mermaid
-flowchart LR
-    brief["brief.md"] --> pick{"Pick a way"}
-    pick -->|SQL| RA["run_all.sql"]
-    pick -->|Notebook| NB["usecase.ipynb"]
-    RA --> flow["CONFIG (model/wh/db) -> provision (idempotent) -> build -> optional UI steps"]
-    NB --> flow
-    flow --> done["working use case"]
-    brief -.->|"stuck?"| esc["CoCo + docs -> hints L1 -> L2 -> L3 -> run_all.sql / notebook"]
-    esc --> flow
-```
-
-- **One CONFIG block** per challenge (top of `run_all.sql`, first cell of the notebook) is the
-  only place to set model / warehouse / database. Default model: `mistral-large2` (EU-native).
-- **Idempotent + isolated:** all DDL is `CREATE ... IF NOT EXISTS` / per-challenge schema, so many
-  people can run against one account safely, or set `hb_db` for a private copy.
-- **Load either way:** paste `run_all.sql` in a Snowsight worksheet (Run All) or `snow sql -f`;
-  import the `.ipynb` in Snowsight or push via `snow notebook`.
-
-## The two challenges
-
-| Challenge | Use case | Folder |
+| Challenge | What you build | Folder |
 |---|---|---|
-| **ReisNogWijzer** | AI travel assistant — RAG over travel/camping knowledge + tools (vehicle, weather, advisories). | [`challenges/01-reisnogwijzer/`](challenges/01-reisnogwijzer/) |
-| **Marketing Agent** | Multi-step agent — turns a product + audience into a campaign plan and a presentation deck. | [`challenges/02-marketing-agent/`](challenges/02-marketing-agent/) |
+| **ReisNogWijzer** | An AI travel assistant: RAG over travel/camping knowledge + tools (vehicle, weather, advisories) that answers real trip questions. | [`challenges/01-reisnogwijzer/`](challenges/01-reisnogwijzer/) |
+| **Marketing Agent** | A multi-step agent that turns a product + audience into a campaign plan **and** a presentation deck. | [`challenges/02-marketing-agent/`](challenges/02-marketing-agent/) |
 
-These are ANWB's pilot use cases, rebuilt as a hands-on kit.
+The two challenges are independent — you only need one. Each folder is self-contained.
+
+### 2. Run it
+
+Open your challenge folder and pick one way — both provision everything and build the use case
+(idempotent, no separate setup step):
+
+- **SQL:** paste `run_all.sql` into a Snowsight worksheet → **Run All** &nbsp;(or `snow sql -c <conn> -f challenges/01-reisnogwijzer/run_all.sql`)
+- **Notebook:** import `<usecase>.ipynb` (`reisnogwijzer.ipynb` / `marketing_agent.ipynb`) into Snowsight → pick a warehouse + database → **Run All**
+
+### 3. Build & present
+
+Start from the challenge's `brief.md` and build the use case. Stuck? Escalate one level at a time:
+
+```
+brief.md  →  ask CoCo + Snowflake docs  →  hints/level-1  →  level-2  →  level-3
+```
+
+**CoCo (Cortex Code)** is your fastest way to find things — ask it "how do I query a Cortex Search
+service?" before reaching for a hint. `run_all.sql` / the notebook is the working reference if you
+want to peek.
+
+## Good to know
+
+- **Config in one place:** model / warehouse / database are set in a single **CONFIG block** at the
+  top of `run_all.sql` (and the first notebook cell). Default model `mistral-large2` (EU-native);
+  alternative `llama3.3-70b`. *US-only models (Claude, OpenAI GPT, llama4-maverick) aren't reachable
+  under EU-only cross-region inference.*
+- **Sharing one account?** Set `hb_db` to your own name (e.g. `HACKATHON_BOX_MSA`) in the CONFIG
+  block for a private copy — otherwise runs don't collide (idempotent, per-challenge schema).
+- **Your account needs:** Cortex AI enabled (EU-only cross-region is fine), Enterprise edition, and
+  a role that can create a database / warehouse / schema. The optional live tools / `.pptx` deck
+  need `CREATE INTEGRATION` / Anaconda — both degrade gracefully if not available.
+- **Preflight (optional):** run [`preflight_check.sql`](preflight_check.sql) once as `ACCOUNTADMIN`.
+  It's read-only; any `FAIL` prints a one-line fix (admin-level items go to your account admin).
+- **Your demo:** problem statement → architecture → Snowflake capabilities used → live demo →
+  lessons learned (15 min + Q&A).
+- **When you're done:** `DROP DATABASE IF EXISTS HACKATHON_BOX;` and `DROP WAREHOUSE IF EXISTS HACKATHON_WH;` (or your own `hb_db`).
+- **No API keys needed;** sample data is synthetic, shaped to mirror ANWB's real datasets. It's a
+  sandbox — build and break things.
 
 ## Repository layout
 
 ```
-START_HERE.md              Front door: pick a challenge, pick SQL or notebook, go.
 preflight_check.sql        Optional read-only account readiness check (run as ACCOUNTADMIN).
 challenges/
   01-reisnogwijzer/        brief.md · run_all.sql · reisnogwijzer.ipynb · hints/ · data/ · tools/ · app.py
   02-marketing-agent/      brief.md · run_all.sql · marketing_agent.ipynb · hints/ · data/ · tools/ · app.py
 ```
-
-## Requirements
-
-- A Snowflake account with **Cortex AI** enabled (Cortex Search, AI functions). EU-only
-  cross-region inference is supported; the default model `mistral-large2` is EU-native.
-- A role that can create a database, warehouse, and schema (or an admin who pre-creates a shared
-  `hb_db`). The optional live tools / `.pptx` deck need `CREATE INTEGRATION` / Anaconda enabled;
-  both degrade gracefully if not available.
-
-Sample data is synthetic, shaped to mirror ANWB's real datasets. No API keys required.
