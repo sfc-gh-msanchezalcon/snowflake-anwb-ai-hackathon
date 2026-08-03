@@ -17,12 +17,18 @@
 --     needs a REAL Dutch plate (the smoke test at the bottom uses a working one).
 --   * There is no real advisory or currency tool - keep those on mock.
 -- ============================================================================
-SET db = 'ANWB_AI_HACKATHON';   -- match the value you used in reisnogwijzer.sql
-SET wh = 'ANWB_AI_HACKATHON_WH';
-USE ROLE ACCOUNTADMIN;
-USE DATABASE IDENTIFIER($db);
+USE ROLE ACCOUNTADMIN;   -- creating an External Access Integration requires this
+
+-- Auto-target the database + warehouse from your main run. Nothing to match or
+-- edit - even if you renamed the DB in the CONFIG block: we just find the database
+-- whose TRAVEL schema you created and use it, and reuse your challenge warehouse.
+SHOW TERSE SCHEMAS LIKE 'TRAVEL' IN ACCOUNT;
+SET challenge_db = (SELECT "database_name" FROM TABLE(RESULT_SCAN(LAST_QUERY_ID())) ORDER BY "created_on" DESC LIMIT 1);
+USE DATABASE IDENTIFIER($challenge_db);
 USE SCHEMA TRAVEL;
-USE WAREHOUSE IDENTIFIER($wh);
+SHOW TERSE WAREHOUSES LIKE 'ANWB_AI_HACKATHON_WH';
+SET challenge_wh = (SELECT COALESCE(MAX("name"), CURRENT_WAREHOUSE()) FROM TABLE(RESULT_SCAN(LAST_QUERY_ID())));
+USE WAREHOUSE IDENTIFIER($challenge_wh);
 
 -- 1. Allow outbound HTTPS to the two public APIs only
 CREATE OR REPLACE NETWORK RULE hackathon_api_network_rule
