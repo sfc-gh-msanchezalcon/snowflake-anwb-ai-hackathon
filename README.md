@@ -29,9 +29,9 @@ notebook.
 ## How to run
 
 1. **Pick a use case** and open its folder.
-2. **Run it one of two ways — same result, pick whichever you prefer:**
-   - **SQL:** paste the challenge's `<usecase>.sql` (e.g. `reisnogwijzer.sql`) into a Snowsight worksheet → **Run All** (or `snow sql -c <conn> -f challenges/01-reisnogwijzer/reisnogwijzer.sql`).
-   - **Notebook:** import the challenge's `<usecase>.ipynb` into Snowsight → pick a warehouse + database → **Run All**.
+2. **Run it — Option A or B (same result, pick whichever you prefer):**
+   - **Option A — SQL:** paste the challenge's `<usecase>.sql` (e.g. `reisnogwijzer.sql`) into a Snowsight worksheet → **Run All** (or `snow sql -c <conn> -f challenges/01-reisnogwijzer/reisnogwijzer.sql`).
+   - **Option B — Notebook:** import the challenge's `<usecase>.ipynb` into Snowsight → pick a warehouse + database → **Run All**.
    Both provision everything (idempotent — no separate setup step) and build the use case.
 3. **Then follow the "SNOWSIGHT STEPS"** at the bottom of the `.sql` file (or the last notebook cell)
    — a step-by-step, click-by-click guide to build the Cortex Agent and, optionally, ship the
@@ -41,8 +41,8 @@ notebook.
 ### Option C (optional) — build with Cortex Code (CoCo)
 
 Prefer an AI copilot? You can build either challenge conversationally with **Cortex Code (CoCo)** in
-Snowsight. **This is optional.** If you can't or don't want to enable cross-region inference, use the
-SQL or Notebook option above — they run entirely on the EU-native `mistral-large2`, in region, and give
+Snowsight. **This is optional.** If you can't or don't want to enable cross-region inference, use
+Option A or B above — they run entirely on the EU-native `mistral-large2`, in region, and give
 the identical result.
 
 **Prerequisites**
