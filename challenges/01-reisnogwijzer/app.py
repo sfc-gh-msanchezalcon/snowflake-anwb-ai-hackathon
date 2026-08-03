@@ -50,14 +50,14 @@ if q := st.chat_input("Ask a travel question…"):
             ctx = search_kb(q, ["title", "content"], limit=3)
             facts = {}
             if kenteken:
-                facts["vehicle"] = tool(f"SELECT SHARED.{rdw_fn}(?)", [kenteken])
+                facts["vehicle"] = tool(f"SELECT TRAVEL.{rdw_fn}(?)", [kenteken])
             if city:
                 facts["emission_zone"] = tool(
                     "SELECT OBJECT_CONSTRUCT(*)::string FROM TRAVEL.EMISSION_ZONES WHERE city = ?",
                     [city],
                 )
             if country:
-                facts["advisory"] = tool("SELECT SHARED.travel_advisory_tool(?)", [country])
+                facts["advisory"] = tool("SELECT TRAVEL.travel_advisory_tool(?)", [country])
             prompt = (
                 "You are ReisNogWijzer, a warm and helpful ANWB travel expert. "
                 "Use ONLY the knowledge and facts below. Be concise and practical.\n\n"
