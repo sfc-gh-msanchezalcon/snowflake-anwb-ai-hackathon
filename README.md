@@ -26,8 +26,8 @@ challenges/
 ```
 
 Each challenge is independent and self-contained. General hackathon info lives here in the README;
-the detailed, step-by-step build for each use case lives in its own folder — in two forms, SQL and
-notebook.
+the detailed, step-by-step build for each use case lives in its own folder, in SQL and notebook form
+(plus an optional Cortex Code path — see [How to run](#how-to-run)).
 
 ## The two use cases
 
