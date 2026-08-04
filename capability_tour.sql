@@ -7,8 +7,9 @@
 -- and tracing) and preflight_check.sql (which only confirms features are enabled).
 --
 -- HOW TO RUN : paste into a Snowsight worksheet with any warehouse selected and
---              click Run All; each statement shows its own result. Read-only
---              except nothing is created - these are stateless function calls.
+--              click Run All; each statement shows its own result. Nothing is
+--              created - the snippets are stateless AI function calls plus one
+--              read-only ACCOUNT_USAGE query.
 -- MODELS     : uses the EU-native mistral-large2 where a model is needed.
 -- NOTE       : the last section (Guardrails) needs cross-region inference and is
 --              expected to be N/A on EU-only accounts - that's fine, skip it.
@@ -16,7 +17,7 @@
 
 
 -- ============================================================================
--- 1. AISQL - task functions (Skill/Tool registry, content understanding)
+-- 1. AISQL - task functions (Skill registry, content understanding)
 -- One-line AI functions you call like SQL. Each maps to a capability ANWB tests.
 -- ============================================================================
 

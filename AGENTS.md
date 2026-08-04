@@ -9,6 +9,7 @@ This repo is the **ANWB AI Hackathon** kit: two self-contained GenAI challenges 
 - Each challenge folder has: `<usecase>.sql` (paste-and-Run-All), `<usecase>.ipynb` (same thing as a notebook), and `app.py` (optional Streamlit chat app). Challenge 1 also has `tools/real_tools.sql` (optional live RDW + open-meteo APIs via an External Access Integration).
 - `README.md` — the participant hub (how to run, what's being evaluated).
 - `preflight_check.sql` — optional read-only account readiness check.
+- `capability_tour.sql` — optional runnable snippets for the Cortex capabilities the two use cases don't already demo (AISQL, embeddings + similarity, LLM-as-judge, observability, guardrails).
 
 ## How each challenge is built
 
