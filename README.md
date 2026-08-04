@@ -117,8 +117,4 @@ Everything runs on Snowflake Cortex, the platform being assessed. (Separately,
   (Snowsight → Admin → Billing & Terms). Without it, the deck step falls back to HTML automatically.
 - **Preflight (optional):** run [`preflight_check.sql`](preflight_check.sql) once as `ACCOUNTADMIN`.
   It's read-only; any `FAIL` prints a one-line fix (admin-level items go to your account admin).
-- **Your demo:** problem statement → architecture → Snowflake capabilities used → live demo →
-  lessons learned (15 min + Q&A).
 - **When you're done:** `DROP DATABASE IF EXISTS ANWB_AI_HACKATHON;` and `DROP WAREHOUSE IF EXISTS ANWB_AI_HACKATHON_WH;` (or your own `db`).
-- **No API keys needed;** sample data is synthetic, shaped to mirror ANWB's real datasets. It's a
-  sandbox — build and break things.
