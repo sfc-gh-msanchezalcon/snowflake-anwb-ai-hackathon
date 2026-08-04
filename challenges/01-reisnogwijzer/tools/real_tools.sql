@@ -1,6 +1,14 @@
 -- ============================================================================
 -- OPTIONAL: REAL external tools - live API calls via an External Access Integration.
 -- No API keys needed (RDW open data + open-meteo are public).
+--
+-- WHY THIS EXISTS: the mocks already prove the agent can call a tool and reason over
+-- the result. This file proves a DIFFERENT capability - Snowflake reaching a LIVE
+-- public API from a governed UDF: egress locked to an allow-list, runs server-side,
+-- no keys, fully auditable. It returns the same shape as the mock (a drop-in), so you
+-- build the challenge on mocks with zero setup, then flip one function to show live
+-- integration - the Munich answer is identical either way.
+--
 -- Requires a role with CREATE INTEGRATION (typically ACCOUNTADMIN) AND outbound
 -- egress. If your network policy blocks egress, skip this - reisnogwijzer.sql already
 -- created zero-setup MOCK tools that work offline.

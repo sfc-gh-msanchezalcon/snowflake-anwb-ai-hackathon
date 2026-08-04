@@ -107,6 +107,11 @@ Everything runs on Snowflake Cortex, the platform being assessed. (Separately,
 - **Your account needs:** Cortex AI enabled (EU-only cross-region is fine), Enterprise edition, and
   a role that can create a database / warehouse / schema. The optional live tools / `.pptx` deck
   need `CREATE INTEGRATION` / Anaconda — both degrade gracefully if not available.
+- **Mock vs live tools (Challenge 1):** the mock tools prove the agent can call a tool and reason
+  over the result (zero setup). The optional [`tools/real_tools.sql`](challenges/01-reisnogwijzer/tools/real_tools.sql)
+  proves a different capability — Snowflake calling a **live public API from a governed UDF**
+  (allow-listed egress, server-side, no keys). Same answer, so it's a drop-in you can flip on to
+  show live integration.
 - **PowerPoint (`.pptx`) in Challenge 2:** the HTML deck is the default and works with no setup. A
   real `.pptx` needs the `python-pptx` package — an admin accepts the Anaconda terms once
   (Snowsight → Admin → Billing & Terms). Without it, the deck step falls back to HTML automatically.
