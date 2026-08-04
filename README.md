@@ -74,26 +74,25 @@ building the agent"* or *"Explain what reisnogwijzer.sql does before we run it."
 
 ## What ANWB is evaluating (and how each use case maps)
 
-ANWB's "Capabilities to test for GenAI" list groups into **11 capability areas** (Governance / IAM /
-RBAC sits inside *Overall*; the no-code agent builder inside *Agent runtime*). The two use cases build
-the core areas; the optional [`capability_tour.sql`](capability_tour.sql) adds hands-on snippets for
-the rest — so **together they give every area a touchpoint**. Everything runs on Snowflake Cortex, the
-platform being assessed. (Separately, [`preflight_check.sql`](preflight_check.sql) confirms each is
-enabled in your account.)
+ANWB's "Capabilities to test for GenAI" groups into **10 capability areas** (matching ANWB's hackathon
+matrix; the no-code agent builder sits inside *Agent runtime*). The two use cases build the core areas;
+the optional [`capability_tour.sql`](capability_tour.sql) adds hands-on snippets for the rest — so
+**together they give every area a touchpoint**. Governance / IAM / RBAC apply across all of them.
+Everything runs on Snowflake Cortex, the platform being assessed. (Separately,
+[`preflight_check.sql`](preflight_check.sql) confirms each is enabled in your account.)
 
 | Capability area | Snowflake capability | ReisNogWijzer | Marketing Agent | Capability tour |
 |---|---|:---:|:---:|:---:|
-| Overall (platform, governance/RBAC, ops) | RBAC, ACCOUNT_USAGE | ● | ● | |
 | LLM Gateway (model calls, compare models) | AI_COMPLETE, model choice | ● | ● | |
-| RAG (knowledge base search) | Cortex Search; AI_EMBED + cosine similarity | ● | ● | ✓ embed + similarity |
-| Agent runtime (multi-step orchestration) | Cortex Agents | ● | ● | |
-| Tool registry (custom tools / functions) | SQL UDFs wired to the agent | ● (vehicle, weather, advisory) | ● (deck generator) | |
-| Agent registry (build as a Cortex Agent) | Cortex Agent object | ● | ● | |
-| Tracing (traces, cost, latency) | AI Observability; ACCOUNT_USAGE | ● | ● | ✓ usage/cost query |
-| Prompt management (structured / versioned prompts) | structured prompt; Git for versioning | ○ | ● (structured plan) | |
 | Evaluation (judge answer quality) | LLM-as-judge via AI_COMPLETE | ○ | ○ | ✓ |
 | Guardrails (PII redaction, scope, safety) | Cortex Guard, AI_REDACT | ○ | ○ | ✓ (cross-region) |
+| Tracing (traces, cost, latency) | AI Observability; ACCOUNT_USAGE | ● | ● | ✓ usage/cost query |
+| Prompt management (structured / versioned prompts) | structured prompt; Git for versioning | ○ | ● (structured plan) | |
+| Agent registry (build as a Cortex Agent) | Cortex Agent object | ● | ● | |
 | Skill registry (reusable AI functions) | AISQL: AI_CLASSIFY/FILTER/SENTIMENT/TRANSLATE/EXTRACT/SUMMARIZE | ○ | ○ | ✓ |
+| Tool registry (custom tools / functions) | SQL UDFs wired to the agent | ● (vehicle, weather, advisory) | ● (deck generator) | |
+| RAG (knowledge base search) | Cortex Search; AI_EMBED + cosine similarity | ● | ● | ✓ embed + similarity |
+| Agent runtime (multi-step orchestration) | Cortex Agents | ● | ● | |
 
 ● = built into the use case  ·  ○ = available as a stretch  ·  ✓ = hands-on snippet in `capability_tour.sql`
 

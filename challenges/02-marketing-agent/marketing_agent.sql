@@ -17,6 +17,9 @@
 -- Self-contained and idempotent; independent of Challenge 1. The deck defaults
 -- to HTML (no extra packages); a real .pptx is an optional stretch that needs
 -- python-pptx (accept Anaconda terms in Snowsight > Admin > Billing & Terms).
+-- Web Search for market context is an optional stretch tool - add it via an
+-- External Access Integration (see Challenge 1's tools/real_tools.sql for the
+-- pattern); by default the agent grounds on the brand knowledge base via RAG.
 -- ============================================================================
 
 -- ============================================================================
