@@ -6,16 +6,12 @@
 -- created zero-setup MOCK tools that work offline.
 -- Run this AFTER reisnogwijzer.sql (it reuses the same database + schema).
 -- ----------------------------------------------------------------------------
--- NOTE - the real tools are drop-in replacements for the mocks:
---   * Signatures match (same args, VARIANT out), so real_rdw_lookup / real_weather
---     swap straight in for the mock versions in the agent, app or SQL.
---   * real_rdw_lookup returns live RDW data AND a derived 'euronorm' (parsed from
---     RDW's emissiecode_omschrijving / uitlaatemissieniveau), so Q1's Munich
---     diesel-ban logic works end-to-end on real data - just like the mock.
---   * The VALUES differ from the mock's fictional demo vehicles, and the demo
---     plates in reisnogwijzer.sql (XD-429-P, ...) are fictional - real_rdw_lookup
---     needs a REAL Dutch plate (the smoke test at the bottom uses a working one).
---   * There is no real advisory or currency tool - keep those on mock.
+-- NOTE - drop-in replacements for the mocks (same args, VARIANT out): real_rdw_lookup
+-- and real_weather swap straight into the agent, app or SQL. real_rdw_lookup returns the
+-- live RDW payload as-is, plus a derived 'euronorm' (from emissiecode_omschrijving /
+-- uitlaatemissieniveau) so Q1's Munich diesel-ban logic works on real data. It needs a
+-- REAL Dutch plate (the demo plates in reisnogwijzer.sql are fictional; the smoke test
+-- below uses a working one). There is no real advisory/currency tool - keep those on mock.
 -- ============================================================================
 USE ROLE ACCOUNTADMIN;   -- creating an External Access Integration requires this
 
