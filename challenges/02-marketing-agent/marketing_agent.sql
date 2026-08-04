@@ -17,9 +17,11 @@
 -- Self-contained and idempotent; independent of Challenge 1. The deck defaults
 -- to HTML (no extra packages); a real .pptx is an optional stretch that needs
 -- python-pptx (accept Anaconda terms in Snowsight > Admin > Billing & Terms).
--- Web Search for market context is an optional stretch tool - add it via an
--- External Access Integration (see Challenge 1's tools/real_tools.sql for the
--- pattern); by default the agent grounds on the brand knowledge base via RAG.
+-- Web Search for live market context is a built-in Cortex Agent tool (not a
+-- custom integration): an admin enables it once for the account
+-- (ALTER ACCOUNT SET ENABLE_CORTEX_WEBSEARCH = true, or AI & ML > Agents >
+-- Settings > Web search), then you add the Web Search tool to the agent. By
+-- default the agent grounds on the brand knowledge base via RAG.
 -- ============================================================================
 
 -- ============================================================================
@@ -259,6 +261,8 @@ SELECT 'Marketing Agent ready in ' || $db || '.MARKETING  |  model=' || $model
 --   2. Schema ANWB_AI_HACKATHON.MARKETING; name it MARKETING_AGENT; Create.
 --   3. Open the agent > Tools > Add > Cortex Search:
 --        ANWB_AI_HACKATHON.MARKETING.MARKETING_KB   (brand voice + deck structure)
+--      (Optional) Tools > Add > Web Search for live market context - needs
+--      ENABLE_CORTEX_WEBSEARCH enabled by an admin (see header note).
 --   4. Model = mistral-large2. Instructions: "You are the ANWB Marketing Agent.
 --      Given a product + audience, produce a structured campaign plan and a
 --      presentation outline, grounded in the brand knowledge base."
