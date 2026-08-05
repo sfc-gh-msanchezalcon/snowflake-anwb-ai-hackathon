@@ -38,11 +38,24 @@ def slides_to_html(slides):
 
 
 products = session.sql(
-    "SELECT product_id, name, description FROM MARKETING.PRODUCTS ORDER BY name"
+    "SELECT product_id, name, category, description FROM MARKETING.PRODUCTS ORDER BY name"
 ).to_pandas()
 segments = session.sql(
-    "SELECT segment_id, name, key_motivator FROM MARKETING.AUDIENCE_SEGMENTS ORDER BY name"
+    "SELECT segment_id, name, key_motivator, top_channels FROM MARKETING.AUDIENCE_SEGMENTS ORDER BY name"
 ).to_pandas()
+
+
+def past_campaigns(product_id, segment_id):
+    # Real prior-campaign benchmarks: same segment, or same product category.
+    return session.sql(
+        """SELECT c.name, c.year, c.channel_mix, c.tagline, c.result_note
+           FROM MARKETING.PAST_CAMPAIGNS c
+           JOIN MARKETING.PRODUCTS p ON p.product_id = c.product_id
+           WHERE c.segment_id = ?
+              OR p.category = (SELECT category FROM MARKETING.PRODUCTS WHERE product_id = ?)
+           ORDER BY c.year DESC""",
+        params=[segment_id, product_id],
+    ).to_pandas()
 
 c1, c2 = st.columns(2)
 prod_name = c1.selectbox("Product", products["NAME"])
@@ -54,11 +67,19 @@ if st.button("Generate campaign", type="primary"):
     with st.spinner("Researching brand & building the plan…"):
         brand = search_kb("tone of voice, brand positioning, campaign planning framework, deck structure")
         brand_ctx = json.dumps([b["content"] for b in brand])
+        # Ground the plan in REAL prior-campaign results so numbers aren't invented.
+        bench = past_campaigns(prod["PRODUCT_ID"], seg["SEGMENT_ID"])
+        bench_ctx = json.dumps(bench.to_dict(orient="records"))
         prompt = (
             "You are an ANWB marketing strategist. Use the brand context to stay on-brand.\n"
             "BRAND CONTEXT: " + brand_ctx + "\n\n"
+            "PAST CAMPAIGN BENCHMARKS (real ANWB results — ground the channel mix and expected "
+            "outcomes in these, and cite them by campaign name): " + bench_ctx + "\n"
+            "This segment's proven channels: " + str(seg["TOP_CHANNELS"]) + "\n\n"
             f"Build a campaign for the product \"{prod['NAME']}\" ({prod['DESCRIPTION']}) "
             f"targeting {seg['NAME']} (motivator: {seg['KEY_MOTIVATOR']}).\n"
+            "Ground the channel mix and expected results in the benchmarks above. Label any number "
+            "you cannot support from them (budget splits, CPA, KPI targets) as '(illustrative)'.\n"
             "Return ONLY valid JSON (no markdown fences) with keys: objective, audience, key_message, "
             "tagline, channels (array), timeline (array of {phase, weeks}), kpis (array), "
             "slides (array of {title, bullets}). Follow the ANWB deck structure and warm tone."
@@ -76,6 +97,12 @@ if st.button("Generate campaign", type="primary"):
     a.metric("Objective", "") ; a.write(plan.get("objective"))
     b.write("**Channels:** " + ", ".join(plan.get("channels", [])))
     b.write("**KPIs:** " + ", ".join(plan.get("kpis", [])))
+
+    if not bench.empty:
+        st.markdown("### Grounded in past-campaign benchmarks")
+        st.caption("Real prior ANWB campaigns for this segment / product category — the plan's "
+                   "channel choices and expected results are grounded in these.")
+        st.dataframe(bench, hide_index=True, use_container_width=True)
 
     st.markdown("### Presentation")
     components.html(slides_to_html(plan.get("slides", [])), height=520, scrolling=True)

@@ -20,8 +20,17 @@
 -- Web Search for live market context is a built-in Cortex Agent tool (not a
 -- custom integration): an admin enables it once for the account
 -- (ALTER ACCOUNT SET ENABLE_CORTEX_WEBSEARCH = true, or AI & ML > Agents >
--- Settings > Web search), then you add the Web Search tool to the agent. By
--- default the agent grounds on the brand knowledge base via RAG.
+-- Settings > Web search), then you add the Web Search tool to the agent.
+--
+-- The agent gets three kinds of grounding: (a) RAG over the brand knowledge
+-- base (Cortex Search MARKETING_KB) for voice + deck structure; (b) a Cortex
+-- Analyst semantic view (MARKETING_INSIGHTS) over the PRODUCTS, AUDIENCE_SEGMENTS
+-- and PAST_CAMPAIGNS tables, so it grounds real product facts and prior-campaign
+-- channel mixes/results instead of inventing numbers; and (c) two custom deck
+-- tools (generate_html_deck, build_deck) so it produces an actual deck, not just
+-- an outline. Note: Cortex Analyst runs on Snowflake-managed models and needs
+-- cross-region inference; under strict EU-only residency it may be unavailable,
+-- in which case drop the Analyst tool and keep the RAG knowledge base.
 -- ============================================================================
 
 -- ============================================================================
@@ -169,6 +178,57 @@ $$;
 
 
 -- ============================================================================
+-- ANALYST  --  a Cortex Analyst semantic view over the structured tables. This
+-- is what lets the agent ground real numbers: product prices, segment channels,
+-- and (crucially) prior-campaign channel mixes + measured results, instead of
+-- inventing them. Add it to the agent as a Cortex Analyst tool (see SNOWSIGHT
+-- STEPS). Cortex Analyst needs cross-region inference; under strict EU-only
+-- residency it may be unavailable - if so, skip this tool and keep MARKETING_KB.
+-- ============================================================================
+CREATE OR REPLACE SEMANTIC VIEW MARKETING_INSIGHTS
+  TABLES (
+    products  AS PRODUCTS          PRIMARY KEY (product_id)  COMMENT='ANWB products and services',
+    segments  AS AUDIENCE_SEGMENTS PRIMARY KEY (segment_id)  COMMENT='Reusable target audience personas',
+    campaigns AS PAST_CAMPAIGNS    PRIMARY KEY (campaign_id)  COMMENT='Prior ANWB campaigns with channel mix and measured results'
+  )
+  RELATIONSHIPS (
+    campaign_to_product AS campaigns (product_id) REFERENCES products (product_id),
+    campaign_to_segment AS campaigns (segment_id) REFERENCES segments (segment_id)
+  )
+  FACTS (
+    products.price_from AS price_from_eur
+  )
+  DIMENSIONS (
+    products.product_name  AS name           WITH SYNONYMS=('product')            COMMENT='Product name',
+    products.category      AS category        COMMENT='Product category: membership, insurance, travel, roadside, shop, energy',
+    products.price_model   AS price_model     COMMENT='per year, per month, per trip, or one-off',
+    products.target_hint   AS target_hint     COMMENT='Who the product is aimed at',
+    segments.segment_name  AS name            WITH SYNONYMS=('audience','persona') COMMENT='Audience segment name',
+    segments.age_range     AS age_range       COMMENT='Age range of the segment',
+    segments.top_channels  AS top_channels    COMMENT='Marketing channels that work best for this segment',
+    segments.key_motivator AS key_motivator   COMMENT='What primarily motivates this segment',
+    campaigns.campaign_name AS name           COMMENT='Past campaign name',
+    campaigns.campaign_year AS year           COMMENT='Year the campaign ran',
+    campaigns.channel_mix   AS channel_mix    COMMENT='Channels used in the past campaign',
+    campaigns.tagline       AS tagline        COMMENT='Past campaign tagline',
+    campaigns.result_note   AS result_note    COMMENT='Measured outcome of the past campaign'
+  )
+  METRICS (
+    campaigns.campaign_count    AS COUNT(campaigns.campaign_id)   COMMENT='Number of past campaigns',
+    products.avg_price_from_eur AS AVG(products.price_from_eur)   COMMENT='Average starting price in EUR',
+    products.product_count      AS COUNT(products.product_id)     COMMENT='Number of products'
+  )
+  COMMENT='ANWB marketing model: products, audience segments, and past-campaign benchmarks (channel mix + results) for grounding campaign plans';
+
+-- Proof it is queryable (Cortex Analyst uses the same model behind the scenes):
+-- past-campaign channel mixes + results by audience segment.
+SELECT * FROM SEMANTIC_VIEW(
+  MARKETING_INSIGHTS
+  DIMENSIONS segments.segment_name, campaigns.campaign_name, campaigns.channel_mix, campaigns.result_note
+);
+
+
+-- ============================================================================
 -- BUILD  --  the multi-step Marketing Agent in SQL. Run these blocks top to
 -- bottom. Scenario: a campaign for one product + audience segment. New to
 -- Snowflake? Each step notes the Cortex feature it uses and why.
@@ -207,6 +267,43 @@ SELECT AI_COMPLETE($model,
  || 'Product: ' || (SELECT name||' - '||description FROM PRODUCTS WHERE product_id='P01')
  || '  Doelgroep: ' || (SELECT name||' ('||key_motivator||')' FROM AUDIENCE_SEGMENTS WHERE segment_id='S01')
 ) AS campaign_deck_html;
+
+
+-- ============================================================================
+-- DECK TOOLS  --  wrap deck generation as callable procedures so the AGENT can
+-- produce the actual deliverable (not just a text outline). Add both to the
+-- agent as custom tools (see SNOWSIGHT STEPS):
+--   * generate_html_deck(plan)  -> branded HTML deck. Zero extra packages, works
+--     everywhere (the EU-safe default).
+--   * build_deck(slides, name)  -> real .pptx (optional stretch; needs Anaconda).
+-- ============================================================================
+CREATE OR REPLACE PROCEDURE generate_html_deck(plan VARIANT)
+RETURNS STRING
+LANGUAGE PYTHON
+RUNTIME_VERSION = '3.11'
+PACKAGES = ('snowflake-snowpark-python')
+HANDLER = 'run'
+AS
+$$
+import html
+def run(session, plan):
+    if not isinstance(plan, dict):
+        plan = {}
+    slides = plan.get("slides", []) or []
+    title = plan.get("campaign_name") or plan.get("tagline") or "ANWB Campaign"
+    css = ("body{font-family:sans-serif;margin:0;background:#f7f7f7}"
+           ".slide{border-top:8px solid #FFCC00;margin:16px;padding:24px;border-radius:12px;"
+           "background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08)}"
+           "h1{color:#0a2a66}h2{color:#0a2a66;margin-top:0}li{margin:4px 0}")
+    parts = ["<style>" + css + "</style>", "<h1>" + html.escape(str(title)) + "</h1>"]
+    for s in slides:
+        if not isinstance(s, dict):
+            continue
+        st = html.escape(str(s.get("title", "")))
+        lis = "".join("<li>" + html.escape(str(b)) + "</li>" for b in (s.get("bullets", []) or []))
+        parts.append("<div class=\"slide\"><h2>" + st + "</h2><ul>" + lis + "</ul></div>")
+    return "".join(parts)
+$$;
 
 
 -- ============================================================================
@@ -249,7 +346,8 @@ $$;
 
 -- Done - a quick readiness summary (database, model, search service, deck options).
 SELECT 'Marketing Agent ready in ' || $db || '.MARKETING  |  model=' || $model
-    || '  |  search=MARKETING_KB  |  deck: HTML (default) + optional .pptx via build_deck'
+    || '  |  search=MARKETING_KB  |  analyst=MARKETING_INSIGHTS'
+    || '  |  deck tools: generate_html_deck (default) + build_deck (.pptx stretch)'
     AS status;
 
 -- ============================================================================
@@ -259,16 +357,71 @@ SELECT 'Marketing Agent ready in ' || $db || '.MARKETING  |  model=' || $model
 -- STEP A - Build the Marketing Agent
 --   1. Left nav > AI & ML > Agents > "+ Agent" (Create agent).
 --   2. Schema ANWB_AI_HACKATHON.MARKETING; name it MARKETING_AGENT; Create.
---   3. Open the agent > Tools > Add > Cortex Search:
---        ANWB_AI_HACKATHON.MARKETING.MARKETING_KB   (brand voice + deck structure)
---      (Optional) Tools > Add > Web Search for live market context - needs
---      ENABLE_CORTEX_WEBSEARCH enabled by an admin (see header note).
---   4. Model = mistral-large2. Instructions: "You are the ANWB Marketing Agent.
---      Given a product + audience, produce a structured campaign plan and a
---      presentation outline, grounded in the brand knowledge base."
---   5. Save, open the chat, and ask e.g.:
+--   3. Open the agent > Tools and add:
+--        a. Cortex Search  ->  ANWB_AI_HACKATHON.MARKETING.MARKETING_KB
+--             (brand voice + deck structure; the RAG index)
+--        b. Cortex Analyst ->  ANWB_AI_HACKATHON.MARKETING.MARKETING_INSIGHTS
+--             (real product facts + past-campaign channel mixes/results, so the
+--              agent grounds numbers instead of inventing them). Skip this one
+--              only if Cortex Analyst is unavailable under EU-only residency.
+--        c. Custom tool    ->  generate_html_deck  (procedure; input: plan VARIANT)
+--             so the agent returns an actual branded HTML deck.
+--        d. Custom tool    ->  build_deck  (procedure; inputs: slides VARIANT,
+--             filename STRING) for a real .pptx  (optional; needs Anaconda).
+--        e. (Optional) Web Search for live market context - needs
+--             ENABLE_CORTEX_WEBSEARCH enabled by an admin (see header note).
+--   4. Model = mistral-large2. Instructions (paste this):
+--        "You are the ANWB Marketing Agent. Given a product + audience, produce
+--         (1) a structured campaign plan and (2) a presentation outline.
+--         GROUNDING & CITATIONS: use the MARKETING_INSIGHTS Analyst tool for real
+--         product facts and prior-campaign channel mixes/results, and the
+--         MARKETING_KB search tool for brand voice + deck structure; cite the
+--         source of each fact (e.g. 'past campaign CM02' or the KB doc title).
+--         ILLUSTRATIVE FIGURES: any number you did NOT get from the Analyst tool
+--         or the knowledge base - budget splits, ROI/CPA, audience sizes, KPI
+--         targets - must be labelled '(illustrative)'; never present an invented
+--         number as verified. DECK: call generate_html_deck (or build_deck for
+--         .pptx) to produce the actual deck. Keep ANWB voice: warm, clear,
+--         plain Dutch 'je', benefit-first, reassuring - never hard-sell."
+--   5. Sample questions (add under the agent's sample/onboarding questions):
 --        - "Maak een campagne voor ANWB Wegenwacht Europa voor actieve senioren."
---      Success = a structured plan + presentation output with visible steps.
+--        - "Bouw een najaarscampagne voor Wegenwacht gericht op jonge gezinnen."
+--        - "Welke kanalenmix werkte in eerdere campagnes voor jonge gezinnen?"
+--        - "Campagne voor de ANWB Doorlopende Reisverzekering voor 25-35-jarigen."
+--        - "Promoot laadpas/EV-laden bij leden die net een elektrische auto kochten."
+--   6. Save, open the chat, and ask one of the sample questions.
+--      Success = a structured plan + a generated deck, with real facts cited and
+--      any assumed numbers marked (illustrative), showing visible multi-step
+--      tool use (Analyst + Search + deck tool).
+--
+-- STEP A-alt (optional) - create the agent with SQL instead of clicking.
+-- Agent creation is GA; this makes the enriched agent reproducible/testable. The
+-- manual UI build above stays the primary path. Uncomment and run:
+--   /*
+--   CREATE OR REPLACE AGENT ANWB_AI_HACKATHON.MARKETING.MARKETING_AGENT
+--     WITH PROFILE='{"display_name":"ANWB Marketing Agent"}'
+--     COMMENT='ANWB campaign-plan + deck agent (RAG + Analyst + deck tools)'
+--     FROM SPECIFICATION $spec$
+--     {
+--       "models": {"orchestration": "mistral-large2"},
+--       "instructions": {"orchestration": "<paste the STEP A step-4 instructions>"},
+--       "tools": [
+--         {"tool_spec": {"type": "cortex_search",             "name": "Marketing_KB"}},
+--         {"tool_spec": {"type": "cortex_analyst_text_to_sql", "name": "Marketing_Insights"}},
+--         {"tool_spec": {"type": "generic", "name": "generate_html_deck",
+--            "description": "Render a branded HTML deck from a plan JSON",
+--            "input_schema": {"type":"object","properties":{"plan":{"type":"object"}},"required":["plan"]}}}
+--       ],
+--       "tool_resources": {
+--         "Marketing_KB":       {"search_service": "ANWB_AI_HACKATHON.MARKETING.MARKETING_KB", "max_results": 4},
+--         "Marketing_Insights": {"semantic_view": "ANWB_AI_HACKATHON.MARKETING.MARKETING_INSIGHTS",
+--                                "execution_environment": {"type": "warehouse", "warehouse": "ANWB_AI_HACKATHON_WH"}},
+--         "generate_html_deck": {"identifier": "ANWB_AI_HACKATHON.MARKETING.GENERATE_HTML_DECK", "type": "procedure",
+--                                "execution_environment": {"type": "warehouse", "warehouse": "ANWB_AI_HACKATHON_WH"}}
+--       }
+--     }
+--     $spec$;
+--   */
 --
 -- STEP B (optional) - Ship the app
 --   Projects > Streamlit > "+ Streamlit App"; warehouse ANWB_AI_HACKATHON_WH, database

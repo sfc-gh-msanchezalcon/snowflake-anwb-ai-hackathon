@@ -90,11 +90,13 @@ Everything runs on Snowflake Cortex, the platform being assessed. (Separately,
 | Prompt management (structured / versioned prompts) | structured prompt; Git for versioning | ○ | ● (structured plan) | |
 | Agent registry (build as a Cortex Agent) | Cortex Agent object | ● | ● | |
 | Skill registry (reusable AI functions) | AISQL: AI_CLASSIFY/FILTER/SENTIMENT/TRANSLATE/EXTRACT/SUMMARIZE | ○ | ○ | ✓ |
-| Tool registry (custom tools / functions) | SQL UDFs wired to the agent | ● (vehicle, weather, advisory) | ● (deck generator) | |
+| Tool registry (custom tools / functions) | SQL UDFs / procedures wired to the agent | ● (vehicle, weather, advisory) | ● (deck tools: `generate_html_deck`, `build_deck`) | |
 | RAG (knowledge base search) | Cortex Search; AI_EMBED + cosine similarity | ● | ● | ✓ embed + similarity |
-| Agent runtime (multi-step orchestration) | Cortex Agents | ● | ● | |
+| Agent runtime (multi-step orchestration) | Cortex Agents | ● | ● (RAG + Cortex Analyst + deck tools) | |
 
 ● = built into the use case  ·  ○ = available as a stretch  ·  ✓ = hands-on snippet in `capability_tour.sql`
+
+> The Marketing Agent also grounds on a **Cortex Analyst semantic view** (`MARKETING_INSIGHTS`) over its structured tables, so product facts and prior-campaign channel mixes/results are real rather than invented, and it produces an actual deck via custom tools. Cortex Analyst runs on Snowflake-managed models and needs cross-region inference; under strict EU-only residency, drop the Analyst tool and keep the knowledge base (the rest is EU-native).
 
 ## Good to know
 
